@@ -33,26 +33,11 @@ LDPE-rich feeds favour liquid over gas relative to HDPE-rich
 blends<sup>[5](#ref5)</sup>.
 
 **Figure 2.** PyrolysisNet parity plots (predicted vs. experimental, test
-set) for the eight product-category yields.
+set) for the eight product-category yields: **(a)** Liquid, **(b)** Gas,
+**(c)** Solid, **(d)** Gasoline-range, **(e)** Diesel-range, **(f)** Total
+aromatics, **(g)** BTX, **(h)** Wax >C21.  Dashed lines denote 1:1 parity.
 
-| | |
-|:---:|:---:|
-| ![Liquid](../machine_learning/plots/parity_Liquid.png) | ![Gas](../machine_learning/plots/parity_Gas.png) |
-| **(a)** Liquid (R² = 0.74) | **(b)** Gas (R² = 0.56) |
-| ![Solid](../machine_learning/plots/parity_Solid.png) | ![Gasoline](../machine_learning/plots/parity_Gasoline_range_hydrocarbons.png) |
-| **(c)** Solid (R² = 0.41) | **(d)** Gasoline-range (R² = 0.13) |
-| ![Diesel](../machine_learning/plots/parity_Diesel_range_hydrocarbons.png) | ![Aromatics](../machine_learning/plots/parity_Total_aromatics_wpct.png) |
-| **(e)** Diesel-range (R² = 0.41) | **(f)** Total aromatics (R² = 0.40) |
-| ![BTX](../machine_learning/plots/parity_BTX_wpct.png) | ![Wax](../machine_learning/plots/parity_Wax_gtC21.png) |
-| **(g)** BTX (R² = 0.71) | **(h)** Wax >C21 (R² = 0.56) |
-
-**Figure S3.** Temperature sweep (parametric study).
-
-![Temperature sweep](../machine_learning/plots/temperature_sweep.png)
-
-**Figure S7.** Reactor-type comparison (thermal, TOD, catalytic, plasma).
-
-![Reactor comparison](../machine_learning/plots/reactor_comparison.png)
+![Figure 2](figures/fig2_parity_composite.png)
 
 ---
 
@@ -196,10 +181,10 @@ $2.40 kg⁻¹), and alcohols ($22.7 M at $0.69 kg⁻¹).  By contrast, the
 baseline scenario is well diversified (fuels 41 %, organics 37 %, chemicals
 13 %, hydrogen 9 %), consistent with the balanced split configuration.
 
-**Figure 5.** Pareto frontiers overlaid for all four scenarios (alternative
-visualisation).
+**Figure 5.** Annual revenue breakdown by product group across the four
+price scenarios.  Labels show values in $ M yr⁻¹ for bars exceeding $5 M.
 
-![All scenarios](../pareto_all_scenarios.png)
+![Figure 5](figures/fig5_revenue_breakdown.png)
 
 ---
 
