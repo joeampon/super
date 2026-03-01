@@ -22,8 +22,10 @@ _lca = ipc.Client()
 from sklearn.metrics.pairwise import cosine_similarity
 from openai import OpenAI
 from datetime import datetime
+from dotenv import load_dotenv
+load_dotenv()
 client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY")
+    api_key=os.getenv("OPENAI_API_KEY")
 )
 
 from pydantic import BaseModel
@@ -75,20 +77,6 @@ def init():
     #         _flow_embeddings[parts[0].replace('\"', '')] = list(map(float, parts[1].split(',')))
 
 def get_embeddings():
-    """
-    Retrieves process descriptors, generates embeddings for them in batches, and saves the embeddings.
-    This function performs the following steps:
-    1. Retrieves process descriptors using the `_lca.get_descriptors` method.
-    2. Extracts the names of the processes.
-    3. Generates embeddings for the process names in batches of 2000 using the `client.embeddings.create` method.
-    4. Prints the progress of the embedding generation.
-    5. Extends the embeddings list with the newly created embeddings.
-    6. Saves the embeddings using the `save_embeddings` method.
-    Note:
-        The function assumes the existence of `_lca`, `client`, and `save_embeddings` objects or methods in the scope.
-    Returns:
-        None
-    """
     processes = _lca.get_descriptors(o.Process)
     process_names = [p.name for p in processes[0:]]
     embeddings = []
@@ -117,16 +105,6 @@ def save_embeddings():
             f.write(f'"{k}",{",".join(map(str, v))}\n')
 
 def get_synonyms(query, n=5):
-    """
-    Get a list of synonyms for the given query using OpenAI's chat completions.
-    
-    Args:
-        query (str): The query string to find synonyms for.
-        n (int, optional): The number of synonyms to return. Defaults to 5.
-    
-    Returns:
-        list: A list of synonyms for the query.
-    """
     try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -144,34 +122,10 @@ def get_synonyms(query, n=5):
 
 
 def get_processes(query, n=10, _embeddings=False):
-    """
-    Retrieve a list of processes based on the similarity of their embeddings to the given query.
-
-    Args:
-        query (str): The query string to search for similar processes.
-        number (int, optional): The maximum number of similar processes to return. Defaults to 10.
-
-    Returns:
-        list: A list of process identifiers that are most similar to the query. If the query is empty or an error occurs, an empty list is returned.
-
-    Raises:
-        Exception: If there is an error during the process of retrieving or calculating embeddings.
-    """
     global descriptors
     if query == "":
         return []
     try:
-        # global _embeddings
-        # if _embeddings == {}:
-        #     init()
-        # inEmbedding = client.embeddings.create(input=[query], model="text-embedding-3-small").data[0].embedding
-
-        # similarity_scores = []
-        # for (k, v) in _embeddings.items():
-        #     similarity_scores.append([k, cosine_similarity([inEmbedding], [v])[0][0]])
-        # sorted_scores = [[k, v] for k, v in sorted(similarity_scores, key=lambda item: item[1], reverse=True)]
-        # processes = [x[0] for x in sorted_scores[0:number]]
-        # return processes
         _n = 20 if n < 20 else n
 
         synonyms = [query] + get_synonyms(query, 5)
@@ -188,19 +142,6 @@ def get_processes(query, n=10, _embeddings=False):
         return []
 
 def recommend_process(query, n=1):
-    """
-    Recommend a process based on the given query.
-    This function uses an external client to find and recommend processes that match the given query.
-    It prefers market processes and those for the United States.
-    Args:
-        query (str): The query string to search for matching processes.
-        n (int, optional): The number of processes to return. Defaults to 1.
-    Returns:
-        str or list: If n is 1, returns a single process name as a string. 
-                     If n is greater than 1, returns a list of process names.
-    Raises:
-        Exception: If there is an error in recommending a process, it prints an error message and returns the query.
-    """
     try:
         _n = 20 if n < 20 else n
         processes = get_processes(query, _n)
@@ -225,16 +166,6 @@ def recommend_process(query, n=1):
         return query
 
 def describe_process(process):
-    """
-    Describes a given process by finding its reference and returning a formatted description.
-    Args:
-        process (str): The name or identifier of the process to describe.
-    Returns:
-        str: A formatted string containing the process name and description if the process is found.
-        None: If the process is not found.
-    Prints:
-        "Process not found." if the process reference cannot be found.
-    """
     process_ref = _lca.find(o.Process, process)
     if process_ref is None:
         print("Process not found.")
@@ -303,13 +234,11 @@ def get_result(process, method):
                 id=system_ref.id,
                 location="US"
             ),
-            impact_method=im, # EF 3.1 Method (adapted)
-            # nw_set=o.Ref(id="867fe119-0b5c-38a0-a3e6-1d845ffaedd5"),
+            impact_method=im,
         )
 
         result: ipc.Result = _lca.calculate(setup)
         result.wait_until_ready()
-        # print("Result ready: ", result)
         _lca.delete(system_ref)
         return result
     except Exception as ex:
@@ -317,28 +246,15 @@ def get_result(process, method):
         return None
 
 def get_total_impacts(process, _method="EF 3.0", result=None):
-    """
-    Calculate the total environmental impacts for a given process using a specified impact assessment method.
-    Parameters:
-    process (str): The name or identifier of the process for which to calculate impacts.
-    _method (str, optional): The impact assessment method to use. Defaults to "EF 3.0".
-    result (object, optional): Precomputed result object. If None, the result will be computed using the process and method. Defaults to None.
-    Returns:
-    dict: A dictionary where keys are impact category names (with reference units) and values are the total impact amounts.
-          Returns a dictionary with zero impacts if the result cannot be obtained.
-          Returns None if an exception occurs during the calculation.
-    """
     try:
         if result is None:
             result = get_result(process, _method)
             if result is None:
                 print("Error getting result. Returning zero impacts")
-                # delete_product_system(process)
                 method = get_method(_method)
                 return {f"{i.name}": 0 for i in _lca.get(o.ImpactMethod, method.id).impact_categories}
         
         print(f"Getting total impacts for {process}")
-        # delete_product_system(process)
         results = {f"{impact.impact_category.name} ({impact.impact_category.ref_unit})": impact.amount for impact in result.get_total_impacts()}
         results["Amount"] = result.get_demand().amount 
         results["Unit"] = result.get_demand().tech_flow.flow.ref_unit
@@ -365,30 +281,6 @@ def delete_product_system(process):
     return False
 # %%
 def get_flow_impacts_of_process(process, result=None, method=None):
-    """
-    Get the flow impacts of a given process.
-
-    This function calculates the flow impacts of a specified process by 
-    retrieving the total impacts and then extracting the flow impacts for 
-    each impact category.
-
-    Parameters:
-    process (object): The process for which to calculate flow impacts.
-    result (object, optional): The result object containing impact data. 
-                               If None, the result will be obtained using 
-                               the specified method. Default is None.
-    method (str, optional): The method to use for obtaining the result if 
-                            result is None. Default is "EF 3.0".
-
-    Returns:
-    list: A list of dictionaries, each containing the following keys:
-        - "Flow ID": The ID of the flow.
-        - "Impact Category": The name of the impact category.
-        - "Flow": The name of the flow.
-        - "Category": The category of the flow.
-        - "Amount": The amount of the flow impact.
-        - "Unit": The unit of the flow impact.
-    """
     if result is None:
         if method is None:
             method = "EF 3.0"
@@ -457,38 +349,6 @@ def get_direct_flow_impacts(process, method="EF 3.0"):
     result.dispose()
     return flows
 
-    
-    # print(f"Getting direct flow impacts for {process}")
-    # print(f"There are {len(p.exchanges)} exchanges")
-    # for i, e in enumerate(p.exchanges):
-    #     try:
-    #         print(f"Processing exchange {i+1}")
-    #         defaultProvider = e.default_provider
-    #         if defaultProvider:
-    #             provider = _lca.get(o.Process, defaultProvider.id)
-    #             if provider:
-    #                 result = get_result(provider.name, method)
-    #                 if result is None:
-    #                     print("Error getting result for provider: ", provider.name)
-    #                     delete_product_system(provider.name)
-    #                     continue
-    #                 directFlowImpacts = get_total_impacts(provider.name, method, result)
-    #                 directFlowImpacts[f"Amount"] = e.amount
-    #                 directFlowImpacts[f"Unit"] = e.flow.ref_unit
-    #                 directFlowImpacts[f"Provider"] = e.flow.name
-    #                 directFlowImpacts[f"Input"] = e.is_input
-    #                 directFlowImpacts[f"Avoided"] = e.is_avoided_product
-                    
-    #                 impacts[f"{i}:{e.flow.name}"] = directFlowImpacts
-    #                 result.dispose()
-
-
-    #     except Exception as ex:
-
-    #         print("Error processing exchange: ", e.flow.name, "\n", ex)
-    #         continue
-
-    # return impacts
 #%%
 def create_product_system(process):
     system_ref = _lca.find(o.ProductSystem, process)
@@ -565,8 +425,6 @@ def find_providers(flow):
     return providers
 
 #%%
-#%%
-# %%
 def recommend_flow(query, n=1):
     global _flow_embeddings
     if _flow_embeddings == {}:
@@ -664,7 +522,6 @@ def create_process(name, flows, overwrite=False):
                     rf = o.new_product(f["Name"], unit)
                 rf.last_change =  datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f%zZ')
 
-                # print("New flow: ", _lca.put(rf))
                 _lca.put(rf)
             else: 
                 print("Flow found: ", f["Name"], rf.to_dict())
@@ -754,28 +611,10 @@ class LCAFlow(BaseModel):
     Reference: bool
     Avoided: bool
 
-    # should behave like a dict
     def __getitem__(self, key):
         return getattr(self, key)
 
 def biosteam_to_lca(system, product="", processes=None):
-    """
-    Convert a biosteam system to an openLCA process
-    Product is the name of the main product 
-
-    processes should be a list of objects with this format:
-    {
-        "Name": "stover production",
-        "Amount": biomass.F_mass,
-        "Unit": "kg",
-        "Type": "Input",
-        "Reference": False,
-        "Provider": 'maize silage production | maize silage | APOS, U',
-        "Avoided": False
-    }
-
-    """
-
     flows = []
     productAmount = 1
     for s in system.products:
@@ -856,7 +695,6 @@ def biosteam_to_lca(system, product="", processes=None):
         except Exception as ex:
             print("Error processing feed: ", s.ID, ex)
             pass
-            
 
     # electricity
     try:
@@ -906,16 +744,3 @@ def biosteam_to_lca(system, product="", processes=None):
     
     process = create_process(system.ID, normalized, True)
     return process
-
-#%%
-# rp = recommend_process("ethanol production", 1)
-# rp 
-# # %%
-# r = get_result(rp, "EF 3.0")
-# r
-# # %%
-# r2 = get_result(rp, "EF 3.0")
-# r2 
-# # %%
-# ti = get_total_impacts(rp, "EF 3.0", r)
-# ti 
