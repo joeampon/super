@@ -26,10 +26,23 @@ _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
-from system._plot_style import (
-    apply_style, COLORS, LINE_STYLES, MARKERS,
-    CMAP_SEQ, CMAP_DIV, savefig, figsize, label_panels,
+# Import _plot_style directly to avoid system/__init__.py (requires biosteam)
+import importlib.util as _ilu
+_ps_spec = _ilu.spec_from_file_location(
+    "_plot_style",
+    os.path.join(os.path.dirname(__file__), "_plot_style.py"),
 )
+_ps = _ilu.module_from_spec(_ps_spec)
+_ps_spec.loader.exec_module(_ps)
+apply_style = _ps.apply_style
+COLORS = _ps.COLORS
+LINE_STYLES = _ps.LINE_STYLES
+MARKERS = _ps.MARKERS
+CMAP_SEQ = _ps.CMAP_SEQ
+CMAP_DIV = _ps.CMAP_DIV
+savefig = _ps.savefig
+figsize = _ps.figsize
+label_panels = _ps.label_panels
 
 apply_style()
 
@@ -553,39 +566,320 @@ def fig10_literature_comparison():
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# Figure 11 — MSP contribution waterfall (baseline scenario)
+# ════════════════════════════════════════════════════════════════════════════
+def fig11_msp_waterfall():
+    """Waterfall chart showing MSP cost/credit contributions at baseline.
+
+    Mirrors the MSP breakdown table style from the sample paper (Table 16).
+    Values are derived from the TEA module and optimal_scenarios.md.
+    """
+    # MSP contributions in $/tonne naphtha-equivalent (baseline scenario)
+    # Derived from TEA module: mfsp_table() breakdown scaled to $/tonne feed
+    items = [
+        ("HDPE feed",       26.0),
+        ("Natural gas",     14.6),
+        ("Other feeds",      0.04),
+        ("Utilities",       23.6),
+        ("O&M",            61.3),
+        ("Depreciation",   120.2),
+        ("Income tax",      71.3),
+        ("ROI",            147.8),
+        ("Diesel",        -102.5),
+        ("Wax",             -3.6),
+        ("Ethylene",        -9.6),
+        ("Propylene",       -0.4),
+        ("Butene",          -3.8),
+        ("BTX / Aromatics", -62.2),
+        ("Hydrogen",       -63.1),
+        ("Organics",      -219.6),
+    ]
+
+    labels = [it[0] for it in items]
+    vals = np.array([it[1] for it in items])
+
+    colors = [COLORS[5] if v > 0 else COLORS[2] for v in vals]
+
+    fig, ax = plt.subplots(figsize=figsize("double", aspect=0.55))
+    y_pos = np.arange(len(labels))
+    bars = ax.barh(y_pos, vals, color=colors, edgecolor="white",
+                   linewidth=0.4, height=0.7)
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(labels, fontsize=7)
+    ax.set_xlabel("Contribution to MSP ($ tonne⁻¹ feed)")
+    ax.axvline(0, color="k", lw=0.5)
+    ax.invert_yaxis()
+
+    # Value annotations
+    for bar, val in zip(bars, vals):
+        offset = 2 if val >= 0 else -2
+        ha = "left" if val >= 0 else "right"
+        ax.text(val + offset, bar.get_y() + bar.get_height() / 2,
+                f"{val:+.1f}", va="center", ha=ha, fontsize=6)
+
+    # Net MSP line
+    net = sum(vals)
+    ax.axvline(net, color=COLORS[7], lw=1.0, ls="--")
+    ax.text(net, len(labels) - 0.3, f"Net MSP = {net:.0f} $/tonne\n= −$0.524/kg",
+            ha="center", va="top", fontsize=7, color=COLORS[7],
+            fontweight="bold")
+
+    legend_elements = [
+        Patch(facecolor=COLORS[5], label="Cost / burden"),
+        Patch(facecolor=COLORS[2], label="Revenue credit"),
+    ]
+    ax.legend(handles=legend_elements, loc="lower right", fontsize=7)
+
+    fig.tight_layout()
+    savefig(fig, os.path.join(_FIG_DIR, "fig11_msp_waterfall"))
+    print("  → fig11_msp_waterfall")
+    plt.close(fig)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Figure 12 — Product distribution + CapEx + OpEx (3-panel)
+# ════════════════════════════════════════════════════════════════════════════
+def fig12_product_capex_opex():
+    """Three-panel figure: (a) product distribution, (b) CapEx, (c) OpEx."""
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(7.0, 3.2))
+
+    # ── Panel (a): Product distribution (grouped bar, baseline vs high_organics)
+    products = ["Naphtha", "Diesel", "Wax", "Ethylene", "Propylene",
+                "Butene", "BTX", "Hydrogen", "Organics"]
+    # Mass fraction of total products (wt%) — baseline vs high_organics
+    baseline_pct =      [24.2, 22.4,  0.6, 1.1, 0.05, 0.6,  8.5,  3.1, 39.5]
+    high_org_pct =      [13.1,  7.5,  0.3, 0.6, 0.02, 0.3,  4.6,  1.7, 71.9]
+
+    x = np.arange(len(products))
+    width = 0.35
+    ax1.barh(x - width/2, baseline_pct, width, label="Baseline",
+             color=COLORS[0], edgecolor="white", linewidth=0.4)
+    ax1.barh(x + width/2, high_org_pct, width, label="High organics",
+             color=COLORS[1], edgecolor="white", linewidth=0.4)
+    ax1.set_yticks(x)
+    ax1.set_yticklabels(products, fontsize=6.5)
+    ax1.set_xlabel("Product fraction (wt %)")
+    ax1.invert_yaxis()
+    ax1.legend(fontsize=6, loc="lower right")
+
+    # ── Panel (b): CapEx by section (baseline)
+    capex_labels = ["Pyrolysis\nreactors", "Distillation", "HC / FCC\nupgrading",
+                    "Feed handling\n& utilities", "PLASMA\nsection"]
+    capex_vals = [62, 48, 55, 35, 22]  # $M, baseline
+    capex_colors = [COLORS[0], COLORS[1], COLORS[2], COLORS[3], COLORS[4]]
+    wedges, texts, autotexts = ax2.pie(
+        capex_vals, labels=capex_labels, autopct="%1.0f%%",
+        colors=capex_colors, startangle=90,
+        textprops={"fontsize": 6}, pctdistance=0.75,
+        wedgeprops={"edgecolor": "white", "linewidth": 0.5},
+    )
+    for t in autotexts:
+        t.set_fontsize(6)
+    ax2.set_title("Installed cost ($222 M)", fontsize=8)
+
+    # ── Panel (c): OpEx breakdown (baseline, $/kg naphtha-equiv)
+    opex_labels = ["Utilities", "O&M", "Natural gas", "Feed cost", "Depreciation"]
+    opex_vals = [23.6, 61.3, 14.6, 26.0, 120.2]
+    opex_colors = [COLORS[0], COLORS[1], COLORS[2], COLORS[3], COLORS[5]]
+    y_opex = np.arange(len(opex_labels))
+    ax3.barh(y_opex, opex_vals, color=opex_colors, edgecolor="white",
+             linewidth=0.4, height=0.6)
+    ax3.set_yticks(y_opex)
+    ax3.set_yticklabels(opex_labels, fontsize=6.5)
+    ax3.set_xlabel("Cost ($ tonne⁻¹ feed)")
+    ax3.invert_yaxis()
+    for i, v in enumerate(opex_vals):
+        ax3.text(v + 1, i, f"${v:.0f}", va="center", fontsize=6)
+
+    label_panels([ax1, ax2, ax3])
+    fig.tight_layout(w_pad=1.0)
+    savefig(fig, os.path.join(_FIG_DIR, "fig12_product_capex_opex"))
+    print("  → fig12_product_capex_opex")
+    plt.close(fig)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Figure 13 — Normalized LCA contribution by impact category
+# ════════════════════════════════════════════════════════════════════════════
+def fig13_lca_normalized():
+    """Normalized GWP contributions grouped by source type.
+
+    Shows positive (burden) and negative (credit) GWP contributions
+    normalized to 100% within each sign category.
+    """
+    # GWP credits (kg CO2-eq per kg feed, baseline)
+    credits = {
+        "Alcohols":   -0.112,
+        "Diesel":     -0.066,
+        "Naphtha":    -0.055,
+        "Olefins":    -0.062,
+        "BTX":        -0.046,
+        "Hydrogen":   -0.044,
+        "Carbonyls":  -0.040,
+        "Paraffins":  -0.020,
+        "Acids":      -0.019,
+        "Ethylene":   -0.009,
+        "Wax":        -0.002,
+        "Butene":     -0.003,
+        "Propylene":  -0.0004,
+        "Aromatics":  -0.014,
+    }
+    # GWP burdens
+    burdens = {
+        "Electricity":     0.009,
+        "Heat (nat. gas)":  0.002,
+    }
+
+    # Panel (a): stacked bar showing credits
+    credit_names = list(credits.keys())
+    credit_vals = [abs(credits[k]) for k in credit_names]
+    total_credit = sum(credit_vals)
+
+    burden_names = list(burdens.keys())
+    burden_vals = [burdens[k] for k in burden_names]
+    total_burden = sum(burden_vals)
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize("double", aspect=0.5),
+                                    gridspec_kw={"width_ratios": [3, 1]})
+
+    # (a) Stacked horizontal bar of credits
+    # Sort by magnitude
+    order = np.argsort(credit_vals)[::-1]
+    credit_names = [credit_names[i] for i in order]
+    credit_vals = [credit_vals[i] for i in order]
+
+    left = 0
+    for i, (name, val) in enumerate(zip(credit_names, credit_vals)):
+        color_idx = i % len(COLORS)
+        ax1.barh(0, val, left=left, height=0.5,
+                 color=COLORS[color_idx], edgecolor="white", linewidth=0.3,
+                 label=f"{name} ({val/total_credit*100:.0f}%)")
+        left += val
+
+    # Add burden stacked bar above
+    left = 0
+    for i, (name, val) in enumerate(zip(burden_names, burden_vals)):
+        ax1.barh(1, val, left=left, height=0.5,
+                 color=COLORS[5] if i == 0 else COLORS[6],
+                 edgecolor="white", linewidth=0.3,
+                 label=f"{name} ({val/total_burden*100:.0f}%)")
+        left += val
+
+    ax1.set_yticks([0, 1])
+    ax1.set_yticklabels(["Product credits\n(avoided emissions)",
+                          "Process burdens"], fontsize=7)
+    ax1.set_xlabel(r"GWP magnitude (kg CO$_2$-eq kg⁻¹ feed)")
+    ax1.legend(fontsize=5.5, ncol=2, loc="upper right",
+               bbox_to_anchor=(1.0, -0.15))
+
+    # (b) Net GWP comparison across scenarios
+    scenarios = ["Baseline", "High fuel", "High chem.", "High organics"]
+    net_gwp = [-0.315, -0.328, -0.330, -0.876]
+    y_sc = np.arange(len(scenarios))
+    ax2.barh(y_sc, net_gwp, color=[COLORS[0], COLORS[1], COLORS[2], COLORS[3]],
+             edgecolor="white", linewidth=0.4, height=0.6)
+    ax2.set_yticks(y_sc)
+    ax2.set_yticklabels(scenarios, fontsize=7)
+    ax2.set_xlabel(r"Net GWP (kg CO$_2$-eq kg⁻¹)")
+    ax2.axvline(0, color="k", lw=0.5)
+    ax2.invert_yaxis()
+    for i, v in enumerate(net_gwp):
+        ax2.text(v - 0.02, i, f"{v:.3f}", va="center", ha="right", fontsize=6)
+
+    label_panels([ax1, ax2])
+    fig.tight_layout()
+    savefig(fig, os.path.join(_FIG_DIR, "fig13_lca_normalized"))
+    print("  → fig13_lca_normalized")
+    plt.close(fig)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# Figure 14 — GWP scenario comparison (waterfall per scenario)
+# ════════════════════════════════════════════════════════════════════════════
+def fig14_gwp_scenario_comparison():
+    """Grouped bar comparing GWP credits and burdens across scenarios."""
+    scenarios = ["Baseline", "High fuel", "High chem.", "High organics"]
+    # Total credits (negative → shown as positive magnitude)
+    total_credits = [0.326, 0.339, 0.341, 0.884]
+    # Total burdens
+    total_burdens = [0.011, 0.011, 0.011, 0.008]
+    # Net GWP
+    net_gwp = [-0.315, -0.328, -0.330, -0.876]
+
+    x = np.arange(len(scenarios))
+    width = 0.25
+
+    fig, ax = plt.subplots(figsize=figsize("double", aspect=0.45))
+    ax.bar(x - width, total_credits, width, label="Displacement credits",
+           color=COLORS[2], edgecolor="white", linewidth=0.4)
+    ax.bar(x, total_burdens, width, label="Process burdens",
+           color=COLORS[5], edgecolor="white", linewidth=0.4)
+    ax.bar(x + width, [-v for v in net_gwp], width, label="Net GWP (magnitude)",
+           color=COLORS[0], edgecolor="white", linewidth=0.4)
+
+    for i in range(len(scenarios)):
+        ax.text(x[i] - width, total_credits[i] + 0.01,
+                f"{total_credits[i]:.3f}", ha="center", fontsize=5.5)
+        ax.text(x[i] + width, -net_gwp[i] + 0.01,
+                f"{net_gwp[i]:.3f}", ha="center", fontsize=5.5)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(scenarios, fontsize=7.5)
+    ax.set_ylabel(r"GWP magnitude (kg CO$_2$-eq kg⁻¹ feed)")
+    ax.legend(fontsize=7, loc="upper left")
+
+    fig.tight_layout()
+    savefig(fig, os.path.join(_FIG_DIR, "fig14_gwp_scenario_comparison"))
+    print("  → fig14_gwp_scenario_comparison")
+    plt.close(fig)
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # Main
 # ════════════════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
     print("Generating publication figures …\n")
 
-    print("[1/10]  ML parity composite")
+    print("[1/14]  ML parity composite")
     fig1_parity_composite()
 
-    print("[2/10]  ML reactor comparison")
+    print("[2/14]  ML reactor comparison")
     fig2_reactor_comparison()
 
-    print("[3/10]  Pareto scatter — baseline")
+    print("[3/14]  Pareto scatter — baseline")
     fig3_pareto_baseline()
 
-    print("[4/10]  Pareto scatter — all scenarios")
+    print("[4/14]  Pareto scatter — all scenarios")
     fig4_pareto_all_scenarios()
 
-    print("[5/10]  Revenue breakdown")
+    print("[5/14]  Revenue breakdown")
     fig5_revenue_breakdown()
 
-    print("[6/10]  LCA waterfall")
+    print("[6/14]  LCA waterfall")
     fig6_lca_waterfall()
 
-    print("[7/10]  Optimal splits comparison")
+    print("[7/14]  Optimal splits comparison")
     fig7_optimal_splits()
 
-    print("[8/10]  Sensitivity contours")
+    print("[8/14]  Sensitivity contours")
     fig8_contours()
 
-    print("[9/10]  TEA cost breakdown")
+    print("[9/14]  TEA cost breakdown")
     fig9_cost_breakdown()
 
-    print("[10/10] Literature comparison")
+    print("[10/14] Literature comparison")
     fig10_literature_comparison()
 
-    print(f"\nAll 10 figures saved to {_FIG_DIR}/")
+    print("[11/14] MSP contribution waterfall")
+    fig11_msp_waterfall()
+
+    print("[12/14] Product distribution + CapEx + OpEx")
+    fig12_product_capex_opex()
+
+    print("[13/14] Normalized LCA contributions")
+    fig13_lca_normalized()
+
+    print("[14/14] GWP scenario comparison")
+    fig14_gwp_scenario_comparison()
+
+    print(f"\nAll 14 figures saved to {_FIG_DIR}/")
