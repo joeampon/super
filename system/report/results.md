@@ -91,9 +91,9 @@ The optimizer converges to x₁ = 0.342 (34.2 % of feed to CP + TOD),
 x₂ = 0.506 (~50/50 TOD/CP split), x₃ = 0.492 (~50/50 CPY/PLASMA), and
 x₄ = 0.526 (52.6 % of wax to HC, remainder to FCC).  The near-equal
 CPY/PLASMA split reflects a balance between the higher product value of
-PLASMA organics and the lower capital cost of CPY, while the balanced HC/FCC
-split trades higher diesel selectivity (HC) against lower hydrogen
-demand (FCC).
+PLASMA organics and the lower capital cost of CPY, while the balanced wax
+upgrading split balances the higher diesel selectivity of HC against the
+lower hydrogen demand of FCC.
 
 **Figure 2.** Pareto frontier for the baseline price scenario (MSP vs. GWP).
 Each point is one Monte Carlo evaluation of the four split variables; orange
