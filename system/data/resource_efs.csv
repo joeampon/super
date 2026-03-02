@@ -1,0 +1,19 @@
+,Global warming (kg CO2 eq),Amount,Unit,Location,Process
+Benzene,0.866,1.0,kg,GLO,market for benzene
+Acetic acid,1.12,1.0,kg,GLO,market for acetic acid
+Acetaldehyde,1.55,1.0,kg,GLO,market for acetaldehyde
+Heavy fuel oil,0.54,1.0,kg,GLO,market for heavy fuel oil
+Lubricating oil,0.68,1.0,kg,GLO,market for lubricating oil
+Steam,0.17,1.0,kg,GLO,market for steam
+Treatment of waste platic,0.03,1.0,kg,GLO,market for treatment of waste platic
+Oxygen,0.29,1.0,kg,GLO,market for oxygen
+Methanol,0.69,1.0,kg,GLO,market for methanol
+Butane,0.84,1.0,kg,GLO,market for butane
+Naphtha,0.366,1.0,kg,GLO,market for naphtha
+Diesel,0.475,1.0,kg,GLO,market for diesel
+Ethylene,1.396,1.0,kg,GLO,market for ethylene
+Propylene,1.435,1.0,kg,GLO,market for propylene
+"Electricity, medium voltage",0.1167,1.0,MJ,US,"market for electricity, medium voltage"
+Natural gas,0.0561,1.0,MJ,GLO,market for natural gas
+Wax,0.55,1.0,kg,GLO,market for wax
+Hydrogen,2.277,1.0,kg,GLO,market for hydrogen

@@ -46,14 +46,15 @@ def get_impact_factors():
         efs[p]['Process'] = processes[p]
 
     df = pd.DataFrame(efs).T
-    df.to_csv(os.path.join(_project_root, "resource_efs.csv"))
+    df.to_csv(os.path.join(_data_dir, "resource_efs.csv"))
     return df
 
 
-# Load precomputed impact factors (CSV lives in project root)
+# Load precomputed impact factors
 _module_dir = os.path.dirname(os.path.abspath(__file__))
 _project_root = os.path.dirname(_module_dir)
-ef = pd.read_csv(os.path.join(_project_root, "resource_efs.csv"), index_col=0)
+_data_dir = os.path.join(_module_dir, "data")
+ef = pd.read_csv(os.path.join(_data_dir, "resource_efs.csv"), index_col=0)
 
 # Maps BioSTEAM stream IDs to LCA resource names
 streamMaps = {
