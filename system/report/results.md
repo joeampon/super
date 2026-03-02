@@ -136,7 +136,7 @@ dashed line marks the equal-split reference (0.50).
 
 All four scenarios achieve net-negative GWP.  Three scenarios deliver negative
 MSP (profitable at zero feedstock cost); high_organics requires only a nominal
-tipping fee (+$0.009 kg⁻¹) despite generating annual sales of $101 M yr⁻¹
+tipping fee (+$0.009 kg⁻¹) despite generating annual sales of $100.9 M yr⁻¹
 because the larger PLASMA pathway incurs higher installed cost ($272 M vs.
 ~$222 M) and utility demand ($5.2 M yr⁻¹).
 
@@ -197,9 +197,9 @@ The high_organics scenario achieves the deepest GWP reduction
 oxygenated PLASMA products (alcohols, acids, carbonyls) displace
 emission-intensive conventional chemical production.
 
-**Figure 6.** Life cycle GWP contribution by stream at baseline.  Green bars
-are displacement credits (avoided fossil production); red bars are process
-burdens.  The dashed line shows the net GWP.
+**Figure 6.** Life cycle GWP contribution by stream at baseline.  Teal bars
+are displacement credits (avoided fossil production); vermillion bars are
+process burdens.  The dashed line shows the net GWP.
 
 ![Figure 6 — LCA waterfall](figures/fig6_lca_waterfall.png)
 
