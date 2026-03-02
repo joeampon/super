@@ -179,8 +179,12 @@ class Combustor(bst.Unit):
         super()._setup()
 
     def _run(self):
+        fuel, sand, recycle, char_sand = self.ins
         sand_out = self.outs[0]
-        sand_out.copy_like(self.ins[0])
+        # Combine sand + char_sand as the solid stream passing through
+        sand_out.copy_like(sand)
+        sand_out.imol['Sand'] += char_sand.imol['Sand']
+        sand_out.imol['Char'] = char_sand.imol['Char']
         sand_out.T = self.T
 
     def _design(self):
@@ -304,8 +308,13 @@ class Hydrocrack(bst.Unit):
         reacted.P = feed.P
 
         # Apply hydrocracking reactions (wax + H2 → naphtha + diesel)
-        if self.reaction:
-            self.reaction(reacted)
+        if self.reaction is None:
+            raise ValueError(
+                f"{self.ID}: Hydrocrack requires a reaction to convert heavy "
+                f"hydrocarbons. Without a reaction the feed is copied directly "
+                f"to the output without any cracking."
+            )
+        self.reaction(reacted)
 
         # H2 is mixed into reacted stream; downstream splitter handles excess
         h2_out.empty()
@@ -416,8 +425,13 @@ class FluidizedCatalyticCracking(bst.Unit):
         product.mol = feed.mol + steam.mol
         product.phase = 'g'
         flue_gas.phase = 'g'
-        if self.reaction:
-            self.reaction.force_reaction(product)
+        if self.reaction is None:
+            raise ValueError(
+                f"{self.ID}: FluidizedCatalyticCracking requires a reaction "
+                f"to crack heavy hydrocarbons. Without a reaction the feed is "
+                f"copied directly to the output without any cracking."
+            )
+        self.reaction.force_reaction(product)
         product.split_to(flue_gas, product, self.product_loss, energy_balance=False)
         product_loss = flue_gas.mol.copy()
         combustion = self.chemicals.get_combustion_reactions()
@@ -770,6 +784,24 @@ class Turbogenerator(bst.Unit):
         'CO': 10100, 'C8H8': 40500, 'C6H6': 40200, 'C7H8': 40600,
     }
 
+    # Molecular weights and stoichiometric combustion ratios
+    # CxHy + (x + y/4)O2 → xCO2 + (y/2)H2O
+    # Stored as (mol_CO2_per_mol_fuel, mol_H2O_per_mol_fuel)
+    _COMBUSTION = {
+        'H2': (0, 1),       # H2 + 0.5O2 → H2O
+        'CH4': (1, 2),      # CH4 + 2O2 → CO2 + 2H2O
+        'C2H4': (2, 2),     # C2H4 + 3O2 → 2CO2 + 2H2O
+        'C2H6': (2, 3),     # C2H6 + 3.5O2 → 2CO2 + 3H2O
+        'C3H6': (3, 3),     # C3H6 + 4.5O2 → 3CO2 + 3H2O
+        'C3H8': (3, 4),     # C3H8 + 5O2 → 3CO2 + 4H2O
+        'C4H8': (4, 4),     # C4H8 + 6O2 → 4CO2 + 4H2O
+        'C4H6': (4, 3),     # C4H6 + 5.5O2 → 4CO2 + 3H2O
+        'CO': (1, 0),       # CO + 0.5O2 → CO2
+        'C8H8': (8, 4),     # C8H8 + 10O2 → 8CO2 + 4H2O
+        'C6H6': (6, 3),     # C6H6 + 7.5O2 → 6CO2 + 3H2O
+        'C7H8': (7, 4),     # C7H8 + 9O2 → 7CO2 + 4H2O
+    }
+
     def __init__(self, ID='', ins=(), outs=(), eta=0.35):
         bst.Unit.__init__(self, ID, ins, outs, bst.settings.get_thermo())
         self.eta = eta
@@ -778,9 +810,21 @@ class Turbogenerator(bst.Unit):
         super()._setup()
 
     def _run(self):
-        self.outs[0].copy_like(self.ins[0])
-        self.outs[0].T = 273.15 + 150
-        self.outs[0].P = 101325
+        feed = self.ins[0]
+        exhaust = self.outs[0]
+        exhaust.copy_like(feed)
+
+        # Combust all recognised fuel species → CO2 + H2O
+        for chem, (n_co2, n_h2o) in self._COMBUSTION.items():
+            mol_fuel = feed.imol[chem]
+            if mol_fuel > 0:
+                exhaust.imol[chem] = 0
+                exhaust.imol['CO2'] += mol_fuel * n_co2
+                if n_h2o > 0:
+                    exhaust.imol['water'] += mol_fuel * n_h2o
+
+        exhaust.T = 273.15 + 150
+        exhaust.P = 101325
 
     def _design(self):
         feed = self.ins[0]
