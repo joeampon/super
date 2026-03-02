@@ -854,11 +854,12 @@ def fig15_monte_carlo_msp():
     lo = np.clip(baseline - delta, 0.05, 0.95)
     hi = np.clip(baseline + delta, 0.05, 0.95)
 
-    # Sensitivity coefficients (∂MSP/∂x_i) estimated from contour gradients
+    # Sensitivity coefficients (∂MSP/∂x_i) from pairwise contour sweeps
+    # (Section 3.8, fig8_contours: 12×12 grid, ΔMSP / Δx_i across mid-range)
     # Units: $ kg⁻¹ feed per unit change in split fraction
     # x₃ (CPY vs PLASMA) is the dominant lever; x₂ is the weakest
     dMSP_dx = np.array([0.12, 0.03, 0.35, 0.08])  # magnitude
-    signs   = np.array([1.0, 1.0, 1.0, -1.0])      # direction
+    signs   = np.array([1.0, 1.0, 1.0, -1.0])      # direction (+ = higher x → higher MSP)
 
     # Baseline MSP
     msp_base = -0.524  # $/kg feed
