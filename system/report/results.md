@@ -25,7 +25,7 @@ Test-set parity plots (Figure 1) confirm that PyrolysisNet captures the dominant
 
 Linear reactor-type corrections, calibrated against published experimental data for thermal pyrolysis, catalytic (zeolite) pyrolysis, and CO₂-plasma pyrolysis, extend the base model to each upstream technology (corrected_*i*(T) = base_*i* + α_*i* + β_*i* × T). Temperature sweeps for 100 % HDPE feed (Figure 2) reveal distinct product selectivity profiles across the three reactor types. Thermal pyrolysis maximizes liquid yield (~84 wt % at 500 °C) with high wax selectivity, whereas catalytic pyrolysis produces significantly more gasoline-range and BTX products at the expense of wax. Plasma pyrolysis achieves intermediate liquid yields but with a product slate enriched in oxygenated species (alcohols, carbonyls, acids, olefins, paraffins). Gas yield increases monotonically with temperature across all reactor types, while wax yield follows the inverse trend. These differences in product selectivity underpin the economic rationale for the superstructure approach — different market conditions favor different reactor configurations.
 
-**Figure 2.** *Grouped line chart (reactor comparison).* Temperature-dependent product yields for thermal, catalytic, and plasma pyrolysis of 100 % HDPE: **(a)** Liquid, **(b)** Gas, **(c)** Wax (>C21), **(d)** Gasoline-range, **(e)** Diesel-range, **(f)** BTX. All 8 outputs across TOD / CP / CPY / PLASMA at 500 °C, showing complementary yield profiles.
+**Figure 2.** *Grouped line chart (reactor comparison).* Temperature-dependent product yields for thermal, catalytic, and plasma pyrolysis of 100 % HDPE: **(a)** Liquid, **(b)** Gas, **(c)** Wax (>C21), **(d)** Gasoline-range, **(e)** Diesel-range, **(f)** BTX. Six key outputs compared across TOD / CP / CPY / PLASMA reactor types, showing complementary yield profiles.
 
 ![Figure 2 — Reactor comparison](figures/fig2_reactor_comparison.png)
 
@@ -71,7 +71,7 @@ Table 3 compares the optimal split fractions across scenarios. Three of the four
 | CPY vs. PLASMA (x₃) | 0.492 | 0.469 | 0.482 | 0.050 |
 | HC vs. FCC (x₄) | 0.526 | 0.518 | 0.541 | 0.791 |
 
-**Figure 3.** *Grouped bar chart (optimal split fractions).* The four optimized split fractions for each price scenario. The dashed line marks the equal-split reference (0.50).
+**Figure 3.** *Grouped bar chart (optimal split fractions).* The four optimized split fractions across the four price scenarios (baseline, high_fuel, high_chem, high_organics). The dashed line marks the equal-split reference (0.50).
 
 ![Figure 3 — Optimal splits](figures/fig7_optimal_splits.png)
 
@@ -120,9 +120,9 @@ The TEA was conducted based on the material and energy flows at 10 % internal ra
 
 ### Cost Structure and MSP
 
-**Figure 4.** *Three-panel cost breakdown:* **(a)** CAPEX by process unit (pie chart) — pyrolysis reactors dominate installed cost (28 %), followed by HC/FCC upgrading (25 %), distillation (22 %), feed handling/utilities (16 %), and PLASMA (10 %); **(b)** OPEX by category (horizontal bar chart) — depreciation, O&M, and utilities, offset by byproduct credits; **(c)** signed MSP bars per scenario (horizontal bar chart) — showing cost drivers and revenue offsets.
+**Figure 4.** *Three-panel cost breakdown:* **(a)** CAPEX by process unit (pie chart) — pyrolysis reactors dominate installed cost (~28 %), followed by HC/FCC upgrading (~25 %), distillation (~22 %), feed handling/utilities (~16 %), and PLASMA (~10 %); **(b)** OPEX by category (horizontal bar chart) — depreciation, O&M, and utilities, offset by byproduct credits; **(c)** product distribution comparison (grouped bar chart) — baseline vs. high_organics.
 
-![Figure 4 — Product distribution, CapEx, OpEx](figures/fig12_product_capex_opex.png)
+![Figure 4 — CapEx, OpEx, product distribution](figures/fig12_product_capex_opex.png)
 
 **Table 6.** Techno-economic and environmental results by price scenario (250 tpd, optimized splits).
 
@@ -163,7 +163,7 @@ Annual sales by product group (Table 7) vary substantially across scenarios. The
 
 ### Organics Revenue Detail
 
-**Table 8.** Organics revenue breakdown ($ M yr⁻¹) — details the High Organics scenario dominance.
+**Table 8.** Organics revenue breakdown ($ M yr⁻¹) — details the high_organics scenario dominance.
 
 | Product | Baseline | High fuel | High chem. | High organics |
 |---------|----------|-----------|-----------|---------------|
@@ -232,7 +232,7 @@ Flat landscapes near the baseline optimum indicate operational flexibility — s
 
 ### PLASMA Activation Threshold
 
-The contour analysis reveals a non-linear structural insight: there is a threshold at approximately x₃ ≈ 0.30 below which the PLASMA pathway activates sharply — MSP and GWP improve rapidly as more feed is routed to PLASMA. Above this threshold the improvement saturates. This step-change behaviour arises because PLASMA's high-value oxygenated products are only economically competitive when produced at sufficient scale to offset the pathway's higher capital and utility costs. This threshold effect is the key structural insight of the superstructure analysis: the optimal configuration is not a smooth trade-off but rather a phase transition between balanced and PLASMA-dominant regimes.
+The contour analysis reveals a non-linear structural insight: there is a threshold at approximately x₃ ≈ 0.30 (recall x₃ is the CPY fraction, so x₃ < 0.30 means >70 % of feed goes to PLASMA) below which the PLASMA pathway activates sharply — MSP and GWP improve rapidly as more feed is routed to PLASMA. Above this threshold the improvement saturates. This step-change behaviour arises because PLASMA's high-value oxygenated products are only economically competitive when produced at sufficient scale to offset the pathway's higher capital and utility costs. This threshold effect is the key structural insight of the superstructure analysis: the optimal configuration is not a smooth trade-off but rather a phase transition between balanced and PLASMA-dominant regimes.
 
 ### Monte Carlo Uncertainty Analysis
 
