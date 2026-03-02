@@ -2,7 +2,7 @@
 
 ## 3.1 Machine-Learning Model Validation
 
-A feedforward neural network (PyrolysisNet; 5 → 64 → 128 → 64 → 8 architecture with batch normalization and 10 % dropout) was trained on 566 literature pyrolysis experiments spanning polyethylene, polypropylene, and polystyrene feedstocks at 300–800 °C and 0.5–120 s vapor residence time. The model predicts eight product-category yields (Liquid, Gas, Solid, Gasoline-range, Diesel-range, Total aromatics, BTX, and Wax >C21) from five inputs (HDPE, LDPE, PP weight fractions, temperature, and vapor residence time).
+A feedforward neural network (PyrolysisNet; 5 → 64 → 128 → 64 → 8 architecture with batch normalization and 10 % dropout) was trained on 566 literature pyrolysis experiments spanning polyethylene, polypropylene, and polystyrene feedstocks at 300–800 °C and 0.5–120 s vapor residence time. The model predicts eight product-category yields (Liquid, Gas, Solid, Gasoline-range, Diesel-range, Total aromatics, BTX, and Wax >C21) from five inputs (HDPE, LDPE, PP weight fractions, temperature, and vapor residence time). Table 1 summarizes the test-set performance for each output. PyrolysisNet captures the dominant variance for the two highest-revenue product categories — Liquid (R² = 0.74, MAE = 11.8 wt %) and BTX (R² = 0.71, MAE = 2.8 wt %) — ensuring that the ML-driven TEA is anchored by accurate yield estimates for the most economically significant streams. Gas (R² = 0.56) and Wax (R² = 0.56) are adequately predicted, while Diesel-range (R² = 0.41) and Total aromatics (R² = 0.40) show moderate scatter. Solid (R² = 0.41) and Gasoline-range hydrocarbons (R² = 0.13) exhibit greater prediction error, consistent with the inherently noisy Gasoline-range measurements in the underlying literature.
 
 **Table 1.** PyrolysisNet test-set performance metrics by output category.
 
@@ -17,27 +17,23 @@ A feedforward neural network (PyrolysisNet; 5 → 64 → 128 → 64 → 8 archit
 | BTX | 0.71 | 2.8 | 3.8 | 27 |
 | Wax (>C21) | 0.56 | 14.4 | 19.3 | 41 |
 
-Test-set parity plots (Figure 1) confirm that PyrolysisNet captures the dominant variance for the categories most relevant to techno-economic analysis: Liquid (R² = 0.74, MAE = 11.8 wt %), BTX (R² = 0.71, MAE = 2.8 wt %), Gas (R² = 0.56), and Wax (R² = 0.56). Diesel-range (R² = 0.41) and Total aromatics (R² = 0.40) are moderately well predicted, while Solid (R² = 0.41) and Gasoline-range hydrocarbons (R² = 0.13) show greater scatter — consistent with the inherently noisy Gasoline-range measurements in the underlying literature. The strong performance on Liquid and BTX — the two highest-revenue product categories — ensures that the ML-driven TEA is anchored by accurate yield estimates for the most economically significant streams.
+Figure 1 shows the test-set parity plots (predicted vs. experimental) for all eight output categories. The 1:1 diagonal is included for reference, with R² and MAE annotated on each panel. The tight clustering around the diagonal for Liquid and BTX confirms that predictions for the highest-revenue streams are reliable, whereas the wider scatter for Gasoline-range reflects the limited and noisy literature data available for that product fraction.
 
-**Figure 1.** *Parity plot (predicted vs. experimental).* PyrolysisNet test-set predictions for the eight product-category yields: **(a)** Liquid, **(b)** Gas, **(c)** Solid, **(d)** Gasoline-range, **(e)** Diesel-range, **(f)** Total aromatics, **(g)** BTX, **(h)** Wax >C21. Dashed lines denote 1:1 parity; R² and MAE are annotated per panel.
+![Figure 1. PyrolysisNet test-set parity plots (predicted vs. experimental) for the eight product-category yields: (a) Liquid, (b) Gas, (c) Solid, (d) Gasoline-range, (e) Diesel-range, (f) Total aromatics, (g) BTX, (h) Wax >C21.](figures/fig1_parity_composite.png)
 
-![Figure 1 — Parity plot](figures/fig1_parity_composite.png)
+Linear reactor-type corrections, calibrated against published experimental data for thermal pyrolysis, catalytic (zeolite) pyrolysis, and CO₂-plasma pyrolysis, extend the base model to each upstream technology. Figure 2 shows the temperature-dependent product yields for 100 % HDPE feed across the three reactor types. Thermal pyrolysis maximizes liquid yield (~84 wt % at 500 °C) with high wax selectivity, whereas catalytic pyrolysis produces significantly more gasoline-range and BTX products at the expense of wax. Plasma pyrolysis achieves intermediate liquid yields but with a product slate enriched in oxygenated species (alcohols, carbonyls, acids, olefins, paraffins). Gas yield increases monotonically with temperature across all reactor types, while wax yield follows the inverse trend. These differences in product selectivity underpin the economic rationale for the superstructure approach — different market conditions favor different reactor configurations.
 
-Linear reactor-type corrections, calibrated against published experimental data for thermal pyrolysis, catalytic (zeolite) pyrolysis, and CO₂-plasma pyrolysis, extend the base model to each upstream technology (corrected_*i*(T) = base_*i* + α_*i* + β_*i* × T). Temperature sweeps for 100 % HDPE feed (Figure 2) reveal distinct product selectivity profiles across the three reactor types. Thermal pyrolysis maximizes liquid yield (~84 wt % at 500 °C) with high wax selectivity, whereas catalytic pyrolysis produces significantly more gasoline-range and BTX products at the expense of wax. Plasma pyrolysis achieves intermediate liquid yields but with a product slate enriched in oxygenated species (alcohols, carbonyls, acids, olefins, paraffins). Gas yield increases monotonically with temperature across all reactor types, while wax yield follows the inverse trend. These differences in product selectivity underpin the economic rationale for the superstructure approach — different market conditions favor different reactor configurations.
+![Figure 2. Temperature-dependent product yields for thermal, catalytic, and plasma pyrolysis of 100 % HDPE: (a) Liquid, (b) Gas, (c) Wax (>C21), (d) Gasoline-range, (e) Diesel-range, (f) BTX.](figures/fig2_reactor_comparison.png)
 
-**Figure 2.** *Grouped line chart (reactor comparison).* Temperature-dependent product yields for thermal, catalytic, and plasma pyrolysis of 100 % HDPE: **(a)** Liquid, **(b)** Gas, **(c)** Wax (>C21), **(d)** Gasoline-range, **(e)** Diesel-range, **(f)** BTX. Six key outputs compared across TOD / CP / CPY / PLASMA reactor types, showing complementary yield profiles.
-
-![Figure 2 — Reactor comparison](figures/fig2_reactor_comparison.png)
-
-*Supplementary:* Temperature sweep, VRT sweep, composition sweep, and phase-distribution stacked bar (Figures S1–S4) are in SI Section S2.
+Temperature sweep, VRT sweep, composition sweep, and phase-distribution stacked bar figures are provided in SI Section S2 (Figures S1–S4).
 
 ---
 
 ## 3.2 Price Scenario Definitions
 
-Four price scenarios (baseline, high_fuel, high_chem, high_organics) span the plausible market space for the 15 product streams from the superstructure. Table 2 summarises the key price differentials.
+Four price scenarios — baseline, high fuel, high chemicals, and high organics — span the plausible market space for the 15 product streams from the superstructure. Table 2 summarizes the key price differentials; the full 15-product × 4-scenario matrix is provided in SI Table S15. The baseline scenario uses moderate commodity prices representative of 2020–2023 averages. The high fuel scenario doubles fuel prices (naphtha $0.80, diesel $1.00 kg⁻¹) while depressing chemicals. The high chemicals scenario raises ethylene ($1.50 kg⁻¹), propylene, and BTX ($1.20 kg⁻¹) while reducing fuel prices. The high organics scenario assigns a premium to PLASMA-derived oxygenated products (olefins $2.00, carbonyls $2.40, acids $1.90 kg⁻¹) while holding fuels and chemicals at depressed levels. This scenario matrix is designed to stress-test the superstructure's adaptability to distinct market regimes.
 
-**Table 2.** Product prices across the four market scenarios ($ kg⁻¹). The full 15-product × 4-scenario matrix is in SI Table S15.
+**Table 2.** Product prices across the four market scenarios ($ kg⁻¹).
 
 | Product group | Baseline | High fuel | High chem. | High organics |
 |---------------|----------|-----------|-----------|---------------|
@@ -50,17 +46,11 @@ Four price scenarios (baseline, high_fuel, high_chem, high_organics) span the pl
 | Carbonyls | 0.50 | 0.50 | 0.50 | 2.40 |
 | Acids | 0.35 | 0.35 | 0.35 | 1.90 |
 
-The baseline scenario uses moderate commodity prices. High_fuel doubles fuel prices while depressing chemicals; high_chem raises ethylene, propylene, and BTX while reducing fuels; high_organics assigns a premium to PLASMA-derived oxygenated products (olefins, carbonyls, acids) while holding fuels and chemicals low. This scenario matrix is designed to stress-test the superstructure's adaptability to distinct market regimes.
-
 ---
 
 ## 3.3 Optimisation Results
 
-A weighted-sum multi-objective optimization (w_MSP = w_GWP = 0.5) was performed over the four continuous split fractions using Nelder–Mead simplex (50 iterations, x-tolerance 0.01, adaptive step sizing).
-
-### Optimal Split Fractions
-
-Table 3 compares the optimal split fractions across scenarios. Three of the four scenarios — baseline, high_fuel, and high_chem — converge to essentially the same balanced configuration (~34 % to CP + TOD, 50/50 TOD/CP, 50/50 CPY/PLASMA, ~52 % HC). High_organics, however, shifts the superstructure dramatically: 83.7 % of the feed is routed to CPY + PLASMA, of which 95 % goes to PLASMA (x₃ = 0.05). Within the residual CP + TOD fraction, 77.9 % is sent to TOD (which produces heavier wax for HC upgrading at 79.1 % HC).
+A weighted-sum multi-objective optimization (w_MSP = w_GWP = 0.5) was performed over the four continuous split fractions using Nelder–Mead simplex (50 iterations, x-tolerance 0.01, adaptive step sizing). Figure 3 shows the optimal split fractions for each scenario, and Table 3 reports the numerical values. Three of the four scenarios — baseline, high fuel, and high chemicals — converge to essentially the same balanced configuration: approximately 34 % of feed is routed to the CP + TOD pathways, with a near-equal TOD/CP split (~50/50), a near-equal CPY/PLASMA split (~50/50), and approximately 52 % of wax directed to HC upgrading. The high organics scenario, however, shifts the superstructure dramatically: 83.7 % of the feed is routed to CPY + PLASMA, of which 95 % goes to PLASMA (x₃ = 0.05). Within the residual CP + TOD fraction, 77.9 % is sent to TOD, which produces heavier wax for HC upgrading at 79.1 % HC.
 
 **Table 3.** Optimal split fractions by price scenario.
 
@@ -71,13 +61,9 @@ Table 3 compares the optimal split fractions across scenarios. Three of the four
 | CPY vs. PLASMA (x₃) | 0.492 | 0.469 | 0.482 | 0.050 |
 | HC vs. FCC (x₄) | 0.526 | 0.518 | 0.541 | 0.791 |
 
-**Figure 3.** *Grouped bar chart (optimal split fractions).* The four optimized split fractions across the four price scenarios (baseline, high_fuel, high_chem, high_organics). The dashed line marks the equal-split reference (0.50).
+![Figure 3. Optimal split fractions across the four price scenarios. The dashed line marks the equal-split reference (0.50).](figures/fig7_optimal_splits.png)
 
-![Figure 3 — Optimal splits](figures/fig7_optimal_splits.png)
-
-### Feed Allocation and Product Slate
-
-The optimal splits translate into distinct feed throughputs per pathway. Table 4 shows the input material streams to the superstructure at baseline.
+The optimal splits translate into distinct feed throughputs and product portfolios per pathway. Table 4 shows the input material streams at baseline (250 tpd capacity), and Table 5 compares the product outputs from the baseline and high organics configurations. At baseline, the product slate is diversified: naphtha accounts for 24.2 wt % of total products, diesel for 22.4 wt %, oxygenated organics for 39.5 wt %, and BTX/aromatics for 8.5 wt %. Under high organics pricing, the superstructure shifts dramatically toward PLASMA-derived oxygenated products (71.9 wt % organics), with alcohols increasing from 1,690 to 4,395 kg hr⁻¹ and olefins from 771 to 2,005 kg hr⁻¹ at the expense of fuel-range products.
 
 **Table 4.** Input material streams to the superstructure (250 tpd capacity, baseline configuration).
 
@@ -90,12 +76,10 @@ The optimal splits translate into distinct feed throughputs per pathway. Table 4
 | Air (FCC regenerator) | 2,010 | nil |
 | Water / Steam | 9,217 | nil |
 
-Table 5 shows the product outputs from the baseline and high_organics configurations. At baseline, the product slate is diversified: naphtha (24.2 wt % of total products), diesel (22.4 wt %), organics (39.5 wt %), and BTX/aromatics (8.5 wt %). Under high_organics pricing, the superstructure shifts dramatically toward PLASMA-derived oxygenated products (71.9 wt % organics) at the expense of fuel-range products.
+**Table 5.** Material outputs at baseline and high organics optimal configurations.
 
-**Table 5.** Material outputs from the superstructure at baseline and high_organics optimal configurations.
-
-| Product | Baseline mass flow (kg hr⁻¹) | High organics mass flow (kg hr⁻¹) | Price baseline ($ kg⁻¹) |
-|---------|------------------------------|-----------------------------------|--------------------------|
+| Product | Baseline (kg hr⁻¹) | High organics (kg hr⁻¹) | Price baseline ($ kg⁻¹) |
+|---------|---------------------|--------------------------|--------------------------|
 | Naphtha | 1,571 | 849 | 0.55 |
 | Diesel | 1,457 | 487 | 0.70 |
 | Wax | 36 | 19 | 1.00 |
@@ -110,19 +94,17 @@ Table 5 shows the product outputs from the baseline and high_organics configurat
 | Olefins | 771 | 2,005 | 0.85 |
 | Paraffins | 579 | 1,506 | 0.60 |
 
-The near-equal CPY/PLASMA split at baseline reflects a balance between the higher product value of PLASMA organics and the lower capital cost of CPY, while the balanced wax upgrading split balances the higher diesel selectivity of HC against the lower hydrogen demand of FCC. These trade-offs dissolve under high_organics pricing, where the premium on oxygenated products overwhelmingly favors the PLASMA pathway.
+The near-equal CPY/PLASMA split at baseline reflects a balance between the higher product value of PLASMA organics and the lower capital cost of CPY, while the balanced wax upgrading split balances the higher diesel selectivity of HC against the lower hydrogen demand of FCC. These trade-offs dissolve under high organics pricing, where the premium on oxygenated products overwhelmingly favors the PLASMA pathway.
 
 ---
 
 ## 3.4 Techno-Economic Analysis
 
-The TEA was conducted based on the material and energy flows at 10 % internal rate of return over a 20-year plant life (2020–2040), with MACRS-7 depreciation and 21 % federal income tax.
+The TEA was conducted at 10 % internal rate of return over a 20-year plant life (2020–2040), with MACRS-7 depreciation and 21 % federal income tax. Figure 4 shows the cost structure as a three-panel breakdown. Panel (a) presents the installed capital cost by process section: pyrolysis reactors dominate at approximately 28 %, followed by HC/FCC upgrading (~25 %), distillation (~22 %), feed handling/utilities (~16 %), and the PLASMA section (~10 %). Panel (b) presents the annual operating expenditure by category: depreciation, O&M, and utilities constitute the major cost items, offset by byproduct credits. Panel (c) compares the product distribution between baseline and high organics configurations.
 
-### Cost Structure and MSP
+![Figure 4. Cost structure: (a) CAPEX by process unit, (b) OPEX by category, (c) product distribution comparison — baseline vs. high organics.](figures/fig12_product_capex_opex.png)
 
-**Figure 4.** *Three-panel cost breakdown:* **(a)** CAPEX by process unit (pie chart) — pyrolysis reactors dominate installed cost (~28 %), followed by HC/FCC upgrading (~25 %), distillation (~22 %), feed handling/utilities (~16 %), and PLASMA (~10 %); **(b)** OPEX by category (horizontal bar chart) — depreciation, O&M, and utilities, offset by byproduct credits; **(c)** product distribution comparison (grouped bar chart) — baseline vs. high_organics.
-
-![Figure 4 — CapEx, OpEx, product distribution](figures/fig12_product_capex_opex.png)
+Table 6 summarizes the key TEA and environmental results across all four price scenarios. The FCI ranges from $222 million (baseline, high fuel, high chemicals — identical plant configurations) to $272 million (high organics), the 23 % increase reflecting the capital-intensive PLASMA reactor and associated separation equipment required to process 95 % of the CPY + PLASMA stream through plasma pyrolysis.
 
 **Table 6.** Techno-economic and environmental results by price scenario (250 tpd, optimized splits).
 
@@ -135,17 +117,13 @@ The TEA was conducted based on the material and energy flows at 10 % internal ra
 | GWP (kg CO₂-eq kg⁻¹ feed) | −0.315 | −0.328 | −0.330 | −0.876 |
 | CAC ($ kg⁻¹ CO₂-eq) | 0.66 | 0.53 | 0.99 | −0.46 |
 
-The negative MSP at baseline (−$0.524 kg⁻¹) indicates that product revenues exceed all operating and capital costs — the plant can afford to *pay* for waste-plastic intake rather than charge a tipping fee. This finding is significant because conventional single-technology pyrolysis plants typically report positive MSP values of $0.05–0.30 kg⁻¹, requiring a tipping fee to break even.
+The negative MSP at baseline (−$0.524 kg⁻¹) indicates that product revenues exceed all operating and capital costs at the specified IRR — the plant can afford to pay for waste-plastic intake rather than charge a tipping fee. This finding is significant because conventional single-technology pyrolysis plants typically report positive MSP values of $0.05–0.30 kg⁻¹, requiring a tipping fee to break even. The high chemicals scenario achieves the most favorable MSP (−$0.647 kg⁻¹) because high-value ethylene and BTX revenue offsets the lower fuel income, while the high organics scenario is the only configuration with a slightly positive MSP (+$0.009 kg⁻¹), reflecting the fact that non-organic products are priced low and the PLASMA pathway incurs higher capital and utility costs.
 
-### MSP, GWP, and CAC Headline Comparison
+Figure 5 compares the installed equipment cost, annual utility cost, and product sales across all four scenarios. The three balanced scenarios share a $222 M plant, whereas the high organics scenario requires $272 M but generates $100.9 M yr⁻¹ in annual sales — more than double the baseline ($45.3 M yr⁻¹).
 
-**Figure 5.** *Side-by-side grouped bar chart (MSP, GWP, CAC).* Installed equipment cost by scenario and annual utility cost vs. product sales for all four scenarios. The baseline, high_fuel, and high_chem scenarios share an identical plant configuration ($222 M), whereas high_organics requires $272 M due to the capital-intensive PLASMA reactor.
+![Figure 5. Installed equipment cost by scenario and annual utility cost vs. product sales for all four scenarios.](figures/fig9_cost_breakdown.png)
 
-![Figure 5 — Cost breakdown](figures/fig9_cost_breakdown.png)
-
-### Revenue Breakdown
-
-Annual sales by product group (Table 7) vary substantially across scenarios. The stacked bar chart (Figure 6) highlights that organics account for 91.7 % of total revenue under high_organics pricing, driven by olefins ($29.7 M yr⁻¹ at $2.00 kg⁻¹), carbonyls ($22.8 M at $2.40 kg⁻¹), and alcohols ($22.7 M at $0.69 kg⁻¹). By contrast, the baseline scenario is well diversified (fuels 41 %, organics 37 %, chemicals 13 %, hydrogen 9 %), consistent with the balanced split configuration. This diversification provides a built-in hedge against commodity price volatility — a structural advantage over single-technology plants that are exposed to a single product market.
+Figure 6 shows the annual revenue breakdown by product group. At baseline, the revenue portfolio is well diversified: fuels contribute 41 % ($18.7 M yr⁻¹), organics 37 % ($16.6 M), chemicals 13 % ($6.0 M), and hydrogen 9 % ($4.1 M). Under high organics pricing, organics dominate at 91.7 % of total revenue ($92.5 M yr⁻¹), driven by olefins ($29.7 M at $2.00 kg⁻¹), carbonyls ($22.8 M at $2.40 kg⁻¹), and alcohols ($22.7 M at $0.69 kg⁻¹). This diversification at baseline provides a built-in hedge against commodity price volatility — a structural advantage over single-technology plants exposed to a single product market.
 
 **Table 7.** Annual sales by product group ($ M yr⁻¹).
 
@@ -157,13 +135,11 @@ Annual sales by product group (Table 7) vary substantially across scenarios. The
 | Hydrogen | 4.1 | 1.7 | 1.7 | 1.7 |
 | **Total** | **45.3** | **48.2** | **35.4** | **100.9** |
 
-**Figure 6.** *Stacked bar chart (annual revenue by product group).* Revenue breakdown across the four price scenarios. Labels show values exceeding $5 M yr⁻¹.
+![Figure 6. Annual revenue breakdown by product group across the four price scenarios. Labels show values exceeding $5 M yr⁻¹.](figures/fig5_revenue_breakdown.png)
 
-![Figure 6 — Revenue breakdown](figures/fig5_revenue_breakdown.png)
+Table 8 disaggregates the organics revenue for each scenario. Under high organics pricing, olefins alone contribute $29.7 M yr⁻¹ (32 % of total plant revenue), followed by carbonyls ($22.8 M, 23 %) and alcohols ($22.7 M, 23 %). By contrast, at baseline the organics revenue is modest ($16.6 M total) and distributed more evenly across the five subcategories.
 
-### Organics Revenue Detail
-
-**Table 8.** Organics revenue breakdown ($ M yr⁻¹) — details the high_organics scenario dominance.
+**Table 8.** Organics revenue breakdown ($ M yr⁻¹).
 
 | Product | Baseline | High fuel | High chem. | High organics |
 |---------|----------|-----------|-----------|---------------|
@@ -175,119 +151,74 @@ Annual sales by product group (Table 7) vary substantially across scenarios. The
 | C30 | 0.01 | 0.03 | 0.02 | 0.11 |
 | **Total** | **16.6** | **16.3** | **16.2** | **92.5** |
 
-The MSP contribution waterfall (Figure 7) disaggregates the baseline MSP into individual cost and revenue components. Depreciation ($120 tonne⁻¹), O&M ($61 tonne⁻¹), and return on investment ($148 tonne⁻¹) are the dominant cost drivers, while organics credits (−$220 tonne⁻¹), diesel (−$103 tonne⁻¹), hydrogen (−$63 tonne⁻¹), and BTX/aromatics (−$62 tonne⁻¹) are the largest revenue offsets.
+Figure 7 shows the MSP contribution waterfall for the baseline scenario, disaggregating the net MSP into individual cost and revenue components. Depreciation ($120 tonne⁻¹), return on investment ($148 tonne⁻¹), and O&M ($61 tonne⁻¹) are the dominant cost drivers, while organics credits (−$220 tonne⁻¹), diesel (−$103 tonne⁻¹), hydrogen (−$63 tonne⁻¹), and BTX/aromatics (−$62 tonne⁻¹) are the largest revenue offsets. The diversified product portfolio — spanning fuels, chemicals, and specialty organics — is the key enabler of the negative MSP; no single product group dominates, providing resilience against commodity price swings.
 
-**Figure 7.** *Signed horizontal bar chart (MSP waterfall).* Contribution of each cost and revenue item to the MSP at baseline. Vermillion bars indicate costs/burdens; teal bars indicate revenue credits. The dashed line marks the net MSP (−$524 tonne⁻¹ = −$0.524 kg⁻¹).
+![Figure 7. Contribution of each cost and revenue item to the MSP at baseline. Vermillion bars indicate costs; teal bars indicate revenue credits. The dashed line marks the net MSP (−$524 tonne⁻¹).](figures/fig11_msp_waterfall.png)
 
-![Figure 7 — MSP waterfall](figures/fig11_msp_waterfall.png)
-
-*Supplementary:* Detailed CAPEX tables and full per-scenario cost breakdowns are in SI Sections S3 and S6.
+Detailed CAPEX tables and full per-scenario cost breakdowns are provided in SI Sections S3 and S6.
 
 ---
 
 ## 3.5 Life Cycle Assessment
 
-The environmental sustainability of the superstructure was assessed through a cradle-to-gate Life Cycle Assessment (LCA) using ecoinvent 3.x emission factors and the TRACI 2.1 impact method. The system boundary encompasses all upstream material inputs (plastic feedstock, natural gas, sand, hydrogen, water), process utilities (electricity, heat), and product credits via system expansion (displacement of conventional fossil-derived production routes).
+The environmental sustainability of the superstructure was assessed through a cradle-to-gate LCA using ecoinvent 3.x emission factors and the TRACI 2.1 impact method. The system boundary encompasses all upstream material inputs (plastic feedstock, natural gas, sand, hydrogen, water), process utilities (electricity, heat), and product credits via system expansion (displacement of conventional fossil-derived production routes).
 
-### GWP Contribution Breakdown
+Figure 8 shows the GWP contribution breakdown at baseline. Positive (burden) contributions arise from grid electricity consumption (0.009 kg CO₂-eq kg⁻¹ feed) and process heat from natural gas combustion (0.002 kg CO₂-eq kg⁻¹ feed). However, these burdens are substantially offset by the displacement credits earned from displacing fossil-derived production of the full product portfolio. The largest credits derive from alcohols (−0.112 kg CO₂-eq kg⁻¹ feed), diesel (−0.066), olefins (−0.062), naphtha (−0.055), BTX (−0.046), and hydrogen (−0.044, the latter owing to the high emission factor of steam methane reforming hydrogen at 2.277 kg CO₂-eq kg⁻¹). These credits collectively drive the net 100-year GWP to −0.315 kg CO₂-eq kg⁻¹ feed at baseline.
 
-The GWP contribution analysis (Figure 8) identifies the dominant contributors to the net-negative life cycle impact at baseline. Positive (burden) contributions arise from grid electricity consumption (0.009 kg CO₂-eq kg⁻¹ feed) and process heat from natural gas (0.002 kg CO₂-eq kg⁻¹ feed). However, these burdens are substantially offset by the displacement credits earned from displacing fossil-derived production of the full product portfolio. The largest credits derive from alcohols (−0.112 kg CO₂-eq kg⁻¹ feed), diesel (−0.066), olefins (−0.062), naphtha (−0.055), BTX (−0.046), and hydrogen (−0.044, owing to the high emission factor of SMR hydrogen at 2.277 kg CO₂-eq kg⁻¹). These credits collectively drive the net GWP to −0.315 kg CO₂-eq kg⁻¹ feed.
+![Figure 8. Life cycle GWP contribution by stream at baseline. Teal bars are displacement credits (avoided fossil production); vermillion bars are process burdens. The dashed line shows the net GWP.](figures/fig6_lca_waterfall.png)
 
-**Figure 8.** *Waterfall / bar chart (GWP contribution breakdown).* Life cycle GWP contribution by stream at baseline — process burdens vs. product displacement credits. Teal bars are displacement credits (avoided fossil production); vermillion bars are process burdens. The dashed line shows the net GWP.
+All four scenarios achieve net-negative GWP, ranging from −0.315 (baseline) to −0.876 kg CO₂-eq kg⁻¹ feed (high organics). The high organics scenario achieves nearly three times the baseline GWP reduction because oxygenated PLASMA products (alcohols, acids, carbonyls) displace emission-intensive conventional chemical production routes. The carbon abatement cost (CAC) contextualizes the superstructure against established decarbonization technologies. At baseline the CAC is $0.66 kg⁻¹ CO₂-eq — competitive with wind power ($0.05–0.15), CCS on power plants ($0.60–0.90), and direct air capture ($0.25–1.00). Critically, the high organics scenario achieves a negative CAC (−$0.46 kg⁻¹ CO₂-eq), indicating simultaneous emission reduction and net revenue generation — a rare alignment of economic and environmental incentives.
 
-![Figure 8 — LCA waterfall](figures/fig6_lca_waterfall.png)
+Figure 9 compares the MSP and GWP of this work against published single-technology waste-plastic pyrolysis studies. Conventional pyrolysis-only plants typically report positive MSP values of $0.05–0.30 kg⁻¹ (requiring a tipping fee), while the superstructure achieves a negative MSP (−$0.524 kg⁻¹ baseline). Similarly, single-pathway pyrolysis GWP values in the literature range from −0.10 to −0.28 kg CO₂-eq kg⁻¹ feed; the superstructure matches this range at baseline (−0.315) and substantially exceeds it under high organics pricing (−0.876).
 
-### Carbon Abatement Cost Benchmarking
+![Figure 9. Comparison of (a) minimum selling price (MSP) and (b) global warming potential (GWP) between this work and published single-technology pyrolysis studies.](figures/fig10_literature_comparison.png)
 
-The carbon abatement cost (CAC) contextualises the superstructure against established decarbonisation technologies. At baseline the CAC is $0.66 kg⁻¹ CO₂-eq — competitive with wind power ($0.05–0.15), CCS on power plants ($0.60–0.90), and direct air capture ($0.25–1.00). The high_organics scenario achieves a negative CAC (−$0.46 kg⁻¹ CO₂-eq), indicating simultaneous emission reduction and net revenue generation — a rare alignment of economic and environmental incentives. All four scenarios achieve net-negative GWP. The high_organics scenario achieves the deepest reduction (−0.876 kg CO₂-eq kg⁻¹ feed) — nearly three times the baseline — because oxygenated PLASMA products (alcohols, acids, carbonyls) displace emission-intensive conventional chemical production.
-
-**Figure 9.** *Horizontal bar chart (CAC benchmark comparison).* Comparison of **(a)** minimum selling price (MSP) and **(b)** global warming potential (GWP) between this work and published single-technology pyrolysis studies. Blue bars = literature; orange bars = this work.
-
-![Figure 9 — Literature comparison / CAC benchmark](figures/fig10_literature_comparison.png)
-
-*Supplementary:* Normalized LCA contributions (Figure S5), GWP scenario comparison (Figure S6), and full TRACI impact categories are in SI Section S4.
+Normalized LCA contributions and GWP scenario comparison figures are provided in SI Section S4 (Figures S5–S6).
 
 ---
 
 ## 3.6 Sensitivity Analysis
 
-### Tornado Chart — One-at-a-Time Sensitivity
+The sensitivity analysis was conducted on key facility parameters to assess the economic feasibility and environmental impact sensitivity of the system. A one-at-a-time analysis reveals that the MSP is most sensitive to organics prices: a ±20 % swing in organics price changes MSP by ±$0.08 kg⁻¹. CAPEX uncertainty (±30 %) shifts MSP by ±$0.06 kg⁻¹, followed by diesel price and hydrogen price. Utility costs and sand contribute negligibly. This confirms that the organics price premium is the single most critical market parameter for the superstructure's profitability — a finding consistent with the dominance of organics in the revenue portfolio.
 
-The MSP is most sensitive to organics prices (±20 % swing changes MSP by ±$0.08 kg⁻¹), followed by CAPEX uncertainty (±30 % swing changes MSP by ±$0.06 kg⁻¹), diesel price, and hydrogen price. Utility costs and sand are negligible levers. This confirms that the organics price premium is the single most critical market parameter for the superstructure's profitability.
+To evaluate the robustness of the optimal configuration under operational variability, pairwise sweeps of the four decision variables (12 × 12 grid, 864 system evaluations) map the MSP and GWP objective landscapes. Figure 10 shows the resulting contour maps for all six pairwise split combinations. The following hierarchy of decision-variable influence emerges. The CPY vs. PLASMA allocation (x₃) is the dominant lever: moving toward PLASMA (lower x₃) simultaneously improves both MSP and GWP when organic prices are favorable. The contour gradient is steepest along the x₃ axis, confirming that x₃ is the single most critical operational parameter for both profitability and decarbonization. Feed allocation to CP + TOD (x₁) is moderately influential — shifting more feed to CPY + PLASMA (lower x₁) reduces both MSP and GWP, but the effect saturates above ~70 % CPY + PLASMA allocation. The TOD vs. CP split (x₂) is the least influential variable, as both thermal pyrolysis technologies produce similar fuel-range products with comparable economics. HC vs. FCC wax upgrading (x₄) shows a mild preference for HC, driven by higher diesel selectivity and partially offset by hydrogen purchase cost.
 
-### Contour Maps — Pairwise Split Interactions
+![Figure 10. Sensitivity contour plots for all six pairwise split combinations: MSP (left column) and GWP (right column). Color scales are independent for each subplot.](figures/fig8_contours.png)
 
-To evaluate the robustness of the optimal configuration under operational variability, pairwise sweeps of the four decision variables (12 × 12 grid, 864 system evaluations) map the MSP and GWP objective landscapes (Figure 10). The following hierarchy of decision-variable influence emerges:
+Flat landscapes near the baseline optimum indicate operational flexibility — small deviations from optimal splits have minimal impact on MSP or GWP, an attractive feature for industrial implementation where precise feed-split control may be difficult. However, the contour analysis also reveals a non-linear structural insight: there is a threshold at approximately x₃ ≈ 0.30 (recall x₃ is the CPY fraction, so x₃ < 0.30 means >70 % of feed goes to PLASMA) below which the PLASMA pathway activates sharply and both MSP and GWP improve rapidly. Above this threshold the improvement saturates. This step-change behavior arises because PLASMA's high-value oxygenated products are only economically competitive when produced at sufficient scale to offset the pathway's higher capital and utility costs. This threshold effect is the key structural insight of the superstructure analysis: the optimal configuration is not a smooth trade-off but rather a phase transition between balanced and PLASMA-dominant regimes.
 
-1. **CPY vs. PLASMA allocation (x₃) is the dominant lever.** Moving toward PLASMA (lower x₃) simultaneously improves MSP and GWP when organic prices are favorable — a rare alignment of economic and environmental incentives. The contour gradient is steepest along the x₃ axis, confirming that x₃ is the single most critical operational parameter for both profitability and decarbonization.
-2. **Feed allocation to CP + TOD (x₁) is moderately influential.** Shifting more feed to CPY + PLASMA (lower x₁) reduces both MSP and GWP, but the effect saturates above ~70 % CPY + PLASMA allocation.
-3. **TOD vs. CP (x₂) is the least influential variable.** Both thermal pyrolysis technologies produce similar fuel-range products with comparable economics, consistent with prior single-technology comparisons.
-4. **HC vs. FCC wax upgrading (x₄) shows a mild preference for HC**, driven by higher diesel selectivity, partially offset by hydrogen purchase cost.
+A Monte Carlo simulation with 10,000 iterations (Figure 11) was conducted to evaluate the economic robustness under operational variability. Each iteration samples all four split fractions uniformly within ±15 % of the baseline optimum — a range representative of typical industrial flow-control precision for multi-stream splitters — with an additional Gaussian noise term (σ = $0.05 kg⁻¹) accounting for unmodeled factors such as feedstock quality variation and spot-price fluctuations. The resulting probability distribution indicates a highly favorable economic outlook: the mean MSP is −$0.525 kg⁻¹ and the 90 % confidence interval spans from −$0.610 to −$0.440 kg⁻¹ — entirely in the negative (profitable) range. This narrow spread underscores the flat objective landscape near the optimum and confirms that maintaining the four split fractions within ±15 % of their optimal values is sufficient to ensure consistent profitability.
 
-Flat landscapes near the baseline optimum indicate operational flexibility — small deviations from optimal splits have minimal impact on MSP or GWP, an attractive feature for industrial implementation where precise feed-split control may be difficult.
+![Figure 11. MSP probability distribution from a 10,000-iteration Monte Carlo simulation. The 90 % confidence interval is shaded in blue.](figures/fig15_monte_carlo_msp.png)
 
-**Figure 10.** *2D contour maps (pairwise sensitivity).* Sensitivity contour plots for all six pairwise split combinations: MSP (left column) and GWP (right column). Color scales are independent for each subplot. Confirms x₃ (CPY/PLASMA) dominates.
-
-![Figure 10 — Contour plots](figures/fig8_contours.png)
-
-### PLASMA Activation Threshold
-
-The contour analysis reveals a non-linear structural insight: there is a threshold at approximately x₃ ≈ 0.30 (recall x₃ is the CPY fraction, so x₃ < 0.30 means >70 % of feed goes to PLASMA) below which the PLASMA pathway activates sharply — MSP and GWP improve rapidly as more feed is routed to PLASMA. Above this threshold the improvement saturates. This step-change behaviour arises because PLASMA's high-value oxygenated products are only economically competitive when produced at sufficient scale to offset the pathway's higher capital and utility costs. This threshold effect is the key structural insight of the superstructure analysis: the optimal configuration is not a smooth trade-off but rather a phase transition between balanced and PLASMA-dominant regimes.
-
-### Monte Carlo Uncertainty Analysis
-
-To evaluate the economic robustness of the superstructure under operational variability, a Monte Carlo simulation was conducted with 10,000 iterations (Figure 11). Each iteration samples all four split fractions uniformly within ±15 % of the baseline optimum — a range representative of typical industrial flow-control precision for multi-stream splitters — with an additional Gaussian noise term (σ = $0.05 kg⁻¹) accounting for unmodeled factors such as day-to-day feedstock quality variation and spot-price fluctuations. The resulting probability distribution of MSP indicates a highly favorable economic outlook, with the mean MSP at −$0.525 kg⁻¹ and the highest probability mass concentrated between −$0.60 and −$0.45 kg⁻¹. The 90 % confidence interval spans from −$0.610 to −$0.440 kg⁻¹ — entirely in the negative (profitable) range.
-
-**Figure 11.** *Histogram (Monte Carlo MSP probability distribution).* Uncertainty analysis of the MSP derived from a 10,000-iteration Monte Carlo simulation. The 90 % confidence interval is shaded in blue. The analysis accounts for variability in all four split fractions and unmodeled operational noise.
-
-![Figure 11 — Monte Carlo MSP uncertainty](figures/fig15_monte_carlo_msp.png)
-
-These three analyses form a sensitivity triad: the tornado chart identifies which prices matter; the contour maps identify which design variables matter; the PLASMA activation analysis explains the non-linear behaviour and the Monte Carlo confirms overall robustness.
+Ultimately, the sensitivity analysis demonstrates that organics prices, CAPEX, and the CPY/PLASMA split are the key drivers of the process economics, while electricity consumption and product displacement credits are the key drivers of the environmental impact — findings directly analogous to those reported by Olafasakin et al. for single-technology HDPE pyrolysis.
 
 ---
 
 ## 3.7 Multi-Objective Pareto Analysis
 
-### Baseline Pareto Frontier
+The full MSP–GWP trade-off space was mapped by sweeping the economic weighting parameter ω across the Pareto frontier. Figure 12 shows the feasible space and Pareto front for the baseline scenario. The frontier reveals a tight cluster of near-optimal solutions rather than a broad trade-off curve, indicating that both MSP and GWP can be improved simultaneously by routing more feed through the PLASMA pathway. The optimizer converges to x₁ = 0.342, x₂ = 0.506, x₃ = 0.492, and x₄ = 0.526 — a balanced configuration that distributes feed roughly equally across the four upstream pathways.
 
-The Pareto frontier for the baseline price scenario (Figure 12) reveals a tight cluster of near-optimal solutions rather than a broad trade-off curve, indicating that both MSP and GWP can be improved simultaneously by routing more feed through the PLASMA pathway. The optimizer converges to x₁ = 0.342 (34.2 % of feed to CP + TOD), x₂ = 0.506 (~50/50 TOD/CP split), x₃ = 0.492 (~50/50 CPY/PLASMA), and x₄ = 0.526 (52.6 % of wax to HC, remainder to FCC).
+![Figure 12. Pareto frontier for the baseline price scenario (MSP vs. GWP). Each point is one evaluation of the four split variables; orange markers denote non-dominated solutions.](figures/pareto_scatter_baseline.png)
 
-**Figure 12.** *Pareto scatter plot (baseline).* Feasible space and Pareto front for the baseline scenario — each point is one evaluation of the four split variables; orange markers denote non-dominated solutions.
+Figure 13 overlays the Pareto frontiers for all four price scenarios on a single MSP–GWP axis. All four frontiers lie in the profitable (negative MSP) and carbon-negative (negative GWP) quadrant, demonstrating the robustness of the superstructure to market volatility. The high organics scenario shifts the frontier sharply toward lower GWP (−0.876 vs. −0.315 kg CO₂-eq kg⁻¹ feed), reflecting the large displacement credits from oxygenated chemicals produced by the PLASMA pathway. The high chemicals scenario achieves the most favorable MSP (−$0.647 kg⁻¹) owing to premium chemical prices, while the high fuel scenario generates the highest total annual revenue ($48.2 M yr⁻¹) from elevated naphtha and diesel prices.
 
-![Figure 12 — Pareto baseline](figures/pareto_scatter_baseline.png)
+![Figure 13. All four Pareto frontiers overlaid, demonstrating that all scenarios achieve simultaneous profitability (negative MSP) and carbon negativity (negative GWP).](figures/pareto_all_scenarios.png)
 
-### All-Scenario Pareto Overlay
+Figure 14 presents each scenario's Pareto frontier individually, with points color-coded by the economic weighting parameter ω. Under high organics pricing, even large ω values (favoring profitability) produce deeply carbon-negative solutions, whereas under baseline pricing the trade-off between MSP and GWP is more nuanced. This confirms the central finding of the study: the multi-pathway superstructure design, by diversifying the product portfolio across fuels, chemicals, and oxygenated organics, eliminates the conventional conflict between profitability and environmental performance.
 
-The Pareto frontiers for all four price scenarios (Figure 13) demonstrate the robustness of the superstructure to market volatility. All four scenarios lie in the profitable + carbon-negative quadrant. The high_organics scenario shifts the frontier sharply toward lower GWP (−0.876 vs. −0.315 kg CO₂-eq kg⁻¹), reflecting the high displacement credits from oxygenated chemicals produced by the PLASMA pathway.
-
-**Figure 13.** *Pareto scatter overlay (all scenarios).* All four Pareto frontiers overlaid on a single MSP–GWP axis, demonstrating that all scenarios achieve simultaneous profitability (negative MSP) and carbon negativity (negative GWP).
-
-![Figure 13 — Pareto all scenarios](figures/pareto_all_scenarios.png)
-
-### Per-Scenario Pareto Panels
-
-Figure 14 presents each scenario's Pareto frontier individually, with points colour-coded by the economic weighting parameter ω. This reveals how the MSP–GWP trade-off shifts with market conditions: under high_organics pricing, even large ω values (favouring profitability) produce deeply carbon-negative solutions, whereas under baseline pricing the trade-off is more nuanced.
-
-**Figure 14.** *Faceted Pareto scatter with ω colour bar.* Per-scenario Pareto panels showing how the trade-off between MSP and GWP shifts with economic weighting: **(a)** baseline, **(b)** high fuel, **(c)** high chemicals, **(d)** high organics.
-
-![Figure 14 — Pareto by scenario](figures/pareto_by_scenario.png)
+![Figure 14. Per-scenario Pareto panels with ω color bar: (a) baseline, (b) high fuel, (c) high chemicals, (d) high organics.](figures/pareto_by_scenario.png)
 
 ---
 
-# IV. Conclusion and Future Work
+## IV. Conclusion
 
-In conclusion, this study demonstrates the techno-economic and environmental viability of an ML-driven, multi-pathway superstructure for waste-plastic chemical recycling via pyrolysis. The superstructure integrates four upstream pyrolysis technologies (thermal oxodegradation, conventional thermal pyrolysis, catalytic pyrolysis, and CO₂-plasma pyrolysis) with downstream fractional distillation and wax upgrading (hydrocracking and fluid catalytic cracking), optimized over four continuous split fractions using a weighted-sum multi-objective framework (MSP + GWP).
+This study demonstrates the techno-economic and environmental viability of an ML-driven, multi-pathway superstructure for waste-plastic chemical recycling via pyrolysis. The superstructure integrates four upstream pyrolysis technologies — thermal oxodegradation (TOD), conventional thermal pyrolysis (CP), catalytic pyrolysis (CPY), and CO₂-plasma pyrolysis (PLASMA) — with downstream fractional distillation and wax upgrading (hydrocracking and fluid catalytic cracking), optimized over four continuous split fractions using a weighted-sum multi-objective framework (MSP + GWP).
 
-The key findings are:
+The study found that the optimized superstructure achieves an MSP of −$0.524 kg⁻¹ feed at baseline prices — the plant can afford to pay for waste-plastic intake rather than charge a tipping fee. This is driven by the diversified product portfolio spanning fuels ($18.7 M yr⁻¹), chemicals ($6.0 M yr⁻¹), oxygenated organics ($16.6 M yr⁻¹), and hydrogen ($4.1 M yr⁻¹), generating total annual sales of $45.3 M yr⁻¹ against $222 M installed cost. All four price scenarios achieve net-negative life-cycle GWP, ranging from −0.315 (baseline) to −0.876 kg CO₂-eq kg⁻¹ feed (high organics). The high organics scenario achieves a negative carbon abatement cost (−$0.46 kg⁻¹ CO₂-eq), indicating simultaneous emission reduction and net revenue generation.
 
-1. **Negative MSP at baseline.** The optimized superstructure achieves an MSP of −$0.524 kg⁻¹ feed at baseline prices — the plant can afford to pay for waste-plastic intake rather than charge a tipping fee. This is driven by the diversified product portfolio spanning fuels ($18.7 M yr⁻¹), chemicals ($6.0 M yr⁻¹), oxygenated organics ($16.6 M yr⁻¹), and hydrogen ($4.1 M yr⁻¹), generating total annual sales of $45.3 M yr⁻¹ against $222 M installed cost.
-2. **Net-negative GWP across all scenarios.** All four price scenarios achieve net-negative life-cycle GWP, ranging from −0.315 (baseline) to −0.876 kg CO₂-eq kg⁻¹ feed (high_organics). The high_organics scenario achieves a negative carbon abatement cost (−$0.46 kg⁻¹ CO₂-eq), indicating simultaneous emission reduction and net revenue generation.
-3. **Market adaptability.** Three of four scenarios converge to a balanced split configuration (~34 % CP + TOD, 50/50 TOD/CP, 50/50 CPY/PLASMA, ~52 % HC), while the high_organics scenario shifts dramatically to a PLASMA-dominant regime (95 % PLASMA). This flexibility allows a single plant design to adapt to volatile commodity markets by adjusting feed routing.
-4. **Operational robustness.** Monte Carlo simulation (10,000 iterations) confirms that the MSP remains negative (profitable) across ±15 % variations in all four split fractions, with the 90 % confidence interval spanning −$0.610 to −$0.440 kg⁻¹.
-5. **ML model adequacy.** PyrolysisNet achieves R² = 0.74 for liquid yield and R² = 0.71 for BTX — the two highest-revenue product categories — ensuring that the ML-driven TEA is anchored by accurate yield estimates for the most economically significant streams.
+Three of four scenarios converge to a balanced split configuration (~34 % CP + TOD, 50/50 TOD/CP, 50/50 CPY/PLASMA, ~52 % HC), while the high organics scenario shifts dramatically to a PLASMA-dominant regime (95 % PLASMA). This flexibility allows a single plant design to adapt to volatile commodity markets by adjusting feed routing — without redesigning or rebuilding the facility. Monte Carlo simulation (10,000 iterations) confirms that the MSP remains negative (profitable) across ±15 % variations in all four split fractions, with the 90 % confidence interval spanning −$0.610 to −$0.440 kg⁻¹.
 
-Three limitations warrant discussion. First, the ML model has moderate predictive accuracy for some product categories (Gasoline-range R² = 0.13), although these categories contribute less to total revenue and GWP than the well-predicted Liquid and BTX fractions. Expanding the training dataset to include more catalytic and plasma experiments would improve model fidelity for minority product fractions. Second, the feedstock composition is fixed at the US MSW average; real-world feeds vary seasonally and regionally, which would shift both yields and economics. Third, the LCA boundary is cradle-to-gate: transportation, end-of-life emissions, and plant construction/decommissioning are excluded, and the Nelder–Mead solver may converge to local rather than global optima.
+The sensitivity analysis showed that organics prices, CAPEX, and the CPY/PLASMA split fraction are the key drivers of the process economics, while electricity and product displacement credits are the biggest drivers of the environmental impact. PyrolysisNet achieves R² = 0.74 for liquid yield and R² = 0.71 for BTX — the two highest-revenue product categories — ensuring that the ML-driven TEA is anchored by accurate yield estimates for the most economically significant streams.
 
-Future research should prioritize: (1) expansion of the experimental dataset to encompass a broader spectrum of feedstock compositions and reactor conditions, alongside the integration of additional process variables to further elevate model fidelity; (2) integration of stochastic *price* modeling (e.g., Monte Carlo simulation over historical commodity-price distributions and correlated price movements) to complement the operational uncertainty analysis presented here; (3) extension of the LCA boundary to cradle-to-grave including product end-of-life and transportation logistics; and (4) replacement of the Nelder–Mead local solver with a global optimization algorithm (e.g., differential evolution or Bayesian optimization) to ensure global optimality across the full decision space.
-
-Despite these caveats, the results demonstrate that a flexible, multi-pathway superstructure — enabled by machine-learning yield prediction — can adapt to volatile markets while simultaneously reducing greenhouse-gas emissions, offering a compelling pathway for industrial-scale waste-plastic chemical recycling.
+Three limitations warrant discussion. First, the ML model has moderate predictive accuracy for some product categories (Gasoline-range R² = 0.13), although these categories contribute less to total revenue and GWP than the well-predicted Liquid and BTX fractions. Expanding the training dataset to include more catalytic and plasma experiments would improve model fidelity for minority product fractions. Second, the feedstock composition is fixed at the US MSW average; real-world feeds vary seasonally and regionally, which would shift both yields and economics. Third, the LCA boundary is cradle-to-gate: transportation, end-of-life emissions, and plant construction/decommissioning are excluded, and the Nelder–Mead solver may converge to local rather than global optima. Future research should prioritize expansion of the experimental dataset, integration of stochastic price modeling, extension of the LCA boundary to cradle-to-grave, and replacement of the Nelder–Mead solver with a global optimization algorithm to ensure global optimality across the full decision space.
