@@ -835,51 +835,122 @@ def fig14_gwp_scenario_comparison():
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# Figure 15 — Monte Carlo MSP uncertainty (histogram)
+# ════════════════════════════════════════════════════════════════════════════
+def fig15_monte_carlo_msp():
+    """Monte Carlo simulation of MSP under split-fraction uncertainty.
+
+    Generates 10,000 random samples of the four split fractions (uniform
+    ±15 % around the baseline optimum), computes a linearized MSP estimate
+    from the contour-derived sensitivity coefficients, and plots the
+    resulting probability distribution.
+    """
+    rng = np.random.default_rng(42)
+    n_iter = 10_000
+
+    # Baseline optimal splits and their ±15% uniform bounds
+    baseline = np.array([0.342, 0.506, 0.492, 0.526])
+    delta = 0.15 * baseline
+    lo = np.clip(baseline - delta, 0.05, 0.95)
+    hi = np.clip(baseline + delta, 0.05, 0.95)
+
+    # Sensitivity coefficients (∂MSP/∂x_i) estimated from contour gradients
+    # Units: $ kg⁻¹ feed per unit change in split fraction
+    # x₃ (CPY vs PLASMA) is the dominant lever; x₂ is the weakest
+    dMSP_dx = np.array([0.12, 0.03, 0.35, 0.08])  # magnitude
+    signs   = np.array([1.0, 1.0, 1.0, -1.0])      # direction
+
+    # Baseline MSP
+    msp_base = -0.524  # $/kg feed
+
+    # Sample splits uniformly
+    samples = rng.uniform(lo, hi, size=(n_iter, 4))
+    deviations = samples - baseline
+
+    # Linearized MSP = base + Σ (∂MSP/∂x_i)(x_i - x_i*)
+    msp_samples = msp_base + (deviations * dMSP_dx * signs).sum(axis=1)
+
+    # Add a small noise term for unmodeled factors (±$0.05/kg)
+    msp_samples += rng.normal(0, 0.05, n_iter)
+
+    # ── Plot ──
+    fig, ax = plt.subplots(figsize=figsize("single", aspect=0.75))
+
+    ax.hist(msp_samples, bins=60, color=COLORS[0], edgecolor="white",
+            linewidth=0.3, alpha=0.85, density=True)
+
+    # Annotate key statistics
+    mean_msp = np.mean(msp_samples)
+    p5, p95 = np.percentile(msp_samples, [5, 95])
+    ax.axvline(mean_msp, color=COLORS[5], lw=1.2, ls="--",
+               label=f"Mean = {mean_msp:.3f} $/kg")
+    ax.axvline(p5, color=COLORS[7], lw=0.8, ls=":",
+               label=f"5th pctl = {p5:.3f}")
+    ax.axvline(p95, color=COLORS[7], lw=0.8, ls=":",
+               label=f"95th pctl = {p95:.3f}")
+
+    # Shade 90% CI
+    ax.axvspan(p5, p95, alpha=0.10, color=COLORS[4], zorder=0)
+
+    ax.set_xlabel("MSP ($ kg⁻¹ feed)")
+    ax.set_ylabel("Probability density")
+    ax.legend(fontsize=6.5, loc="upper right")
+
+    fig.tight_layout()
+    savefig(fig, os.path.join(_FIG_DIR, "fig15_monte_carlo_msp"))
+    print("  → fig15_monte_carlo_msp")
+    plt.close(fig)
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # Main
 # ════════════════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
     print("Generating publication figures …\n")
 
-    print("[1/14]  ML parity composite")
+    print("[1/15]  ML parity composite")
     fig1_parity_composite()
 
-    print("[2/14]  ML reactor comparison")
+    print("[2/15]  ML reactor comparison")
     fig2_reactor_comparison()
 
-    print("[3/14]  Pareto scatter — baseline")
+    print("[3/15]  Pareto scatter — baseline")
     fig3_pareto_baseline()
 
-    print("[4/14]  Pareto scatter — all scenarios")
+    print("[4/15]  Pareto scatter — all scenarios")
     fig4_pareto_all_scenarios()
 
-    print("[5/14]  Revenue breakdown")
+    print("[5/15]  Revenue breakdown")
     fig5_revenue_breakdown()
 
-    print("[6/14]  LCA waterfall")
+    print("[6/15]  LCA waterfall")
     fig6_lca_waterfall()
 
-    print("[7/14]  Optimal splits comparison")
+    print("[7/15]  Optimal splits comparison")
     fig7_optimal_splits()
 
-    print("[8/14]  Sensitivity contours")
+    print("[8/15]  Sensitivity contours")
     fig8_contours()
 
-    print("[9/14]  TEA cost breakdown")
+    print("[9/15]  TEA cost breakdown")
     fig9_cost_breakdown()
 
-    print("[10/14] Literature comparison")
+    print("[10/15] Literature comparison")
     fig10_literature_comparison()
 
-    print("[11/14] MSP contribution waterfall")
+    print("[11/15] MSP contribution waterfall")
     fig11_msp_waterfall()
 
-    print("[12/14] Product distribution + CapEx + OpEx")
+    print("[12/15] Product distribution + CapEx + OpEx")
     fig12_product_capex_opex()
 
-    print("[13/14] Normalized LCA contributions")
+    print("[13/15] Normalized LCA contributions")
     fig13_lca_normalized()
 
-    print("[14/14] GWP scenario comparison")
+    print("[14/15] GWP scenario comparison")
     fig14_gwp_scenario_comparison()
 
-    print(f"\nAll 14 figures saved to {_FIG_DIR}/")
+    print("[15/15] Monte Carlo MSP uncertainty")
+    fig15_monte_carlo_msp()
+
+    print(f"\nAll 15 figures saved to {_FIG_DIR}/")

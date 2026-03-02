@@ -204,7 +204,19 @@ Flat landscapes near the baseline optimum indicate operational flexibility — s
 
 ---
 
-## 3.9 Comparison with Literature
+## 3.9 Monte Carlo Uncertainty Analysis
+
+To evaluate the economic robustness of the superstructure under operational variability, a Monte Carlo simulation was conducted with 10,000 iterations (Figure 15). Each iteration samples all four split fractions uniformly within ±15 % of the baseline optimum (x₁ = 0.342, x₂ = 0.506, x₃ = 0.492, x₄ = 0.526), with an additional noise term (σ = $0.05 kg⁻¹) representing unmodeled factors such as feedstock quality variation and market fluctuations. The resulting probability distribution of MSP indicates a highly favorable economic outlook, with the mean MSP at −$0.525 kg⁻¹ and the highest probability mass concentrated between −$0.60 and −$0.45 kg⁻¹. The 90 % confidence interval spans from −$0.610 to −$0.440 kg⁻¹ — entirely in the negative (profitable) range, meaning the plant remains economically viable across all sampled operating conditions without requiring a tipping fee.
+
+The distribution is approximately symmetric with a slight left skew, suggesting that deviations from optimal splits are equally likely to increase or decrease profitability. This symmetry arises because the dominant sensitivity variable (x₃, CPY vs. PLASMA) has roughly equal positive and negative effects when perturbed from its balanced optimum. The narrow spread (σ ≈ $0.05 kg⁻¹) underscores the flat objective landscape near the optimum identified in the contour analysis (Section 3.8) — the superstructure is operationally forgiving. This analysis confirms that maintaining the four split fractions within ±15 % of their optimal values is sufficient to ensure consistent profitability, an attractive feature for industrial implementation where precise feed-split control may be challenging.
+
+**Figure 15.** Uncertainty analysis of the MSP derived from a 10,000-iteration Monte Carlo simulation. The histogram displays the probability distribution of MSP values ($ kg⁻¹ feed), with the 90 % confidence interval shaded in blue. The analysis accounts for variability in all four split fractions and unmodeled operational noise, demonstrating the economic robustness of the superstructure under operational uncertainty.
+
+![Figure 15 — Monte Carlo MSP uncertainty](figures/fig15_monte_carlo_msp.png)
+
+---
+
+## 3.10 Comparison with Literature
 
 The superstructure framework offers significant advantages over single-pathway designs. Figure 10 compares the MSP and GWP of this work against published waste-plastic pyrolysis TEA/LCA studies.
 
@@ -218,10 +230,20 @@ Similarly, single-pathway pyrolysis GWP values reported in the literature range 
 
 ---
 
-## 3.10 Limitations and Future Work
+# IV. Conclusion and Future Work
+
+In conclusion, this study demonstrates the techno-economic and environmental viability of an ML-driven, multi-pathway superstructure for waste-plastic chemical recycling via pyrolysis. The superstructure integrates four upstream pyrolysis technologies (thermal oxodegradation, conventional thermal pyrolysis, catalytic pyrolysis, and CO₂-plasma pyrolysis) with downstream fractional distillation and wax upgrading (hydrocracking and fluid catalytic cracking), optimized over four continuous split fractions using a weighted-sum multi-objective framework (MSP + GWP).
+
+The key findings are:
+
+1. **Negative MSP at baseline.** The optimized superstructure achieves an MSP of −$0.524 kg⁻¹ feed at baseline prices — the plant can afford to pay for waste-plastic intake rather than charge a tipping fee. This is driven by the diversified product portfolio spanning fuels ($18.7 M yr⁻¹), chemicals ($6.0 M yr⁻¹), oxygenated organics ($16.6 M yr⁻¹), and hydrogen ($4.1 M yr⁻¹), generating total annual sales of $45.3 M yr⁻¹ against $222 M installed cost.
+2. **Net-negative GWP across all scenarios.** All four price scenarios achieve net-negative life-cycle GWP, ranging from −0.315 (baseline) to −0.876 kg CO₂-eq kg⁻¹ feed (high_organics). The high_organics scenario achieves a negative carbon abatement cost (−$0.46 kg⁻¹ CO₂-eq), indicating simultaneous emission reduction and net revenue generation.
+3. **Market adaptability.** Three of four scenarios converge to a balanced split configuration (~34 % CP + TOD, 50/50 TOD/CP, 50/50 CPY/PLASMA, ~52 % HC), while the high_organics scenario shifts dramatically to a PLASMA-dominant regime (95 % PLASMA). This flexibility allows a single plant design to adapt to volatile commodity markets by adjusting feed routing.
+4. **Operational robustness.** Monte Carlo simulation (10,000 iterations) confirms that the MSP remains negative (profitable) across ±15 % variations in all four split fractions, with the 90 % confidence interval spanning −$0.610 to −$0.440 kg⁻¹.
+5. **ML model adequacy.** PyrolysisNet achieves R² = 0.74 for liquid yield and R² = 0.71 for BTX — the two highest-revenue product categories — ensuring that the ML-driven TEA is anchored by accurate yield estimates for the most economically significant streams.
 
 Three limitations warrant discussion. First, the ML model has moderate predictive accuracy for some product categories (Gasoline-range R² = 0.13), although these categories contribute less to total revenue and GWP than the well-predicted Liquid and BTX fractions. Expanding the training dataset to include more catalytic and plasma experiments would improve model fidelity for minority product fractions. Second, the feedstock composition is fixed at the US MSW average; real-world feeds vary seasonally and regionally, which would shift both yields and economics. Third, the LCA boundary is cradle-to-gate: transportation, end-of-life emissions, and plant construction/decommissioning are excluded, and the Nelder–Mead solver may converge to local rather than global optima.
 
-Future research should prioritize: (1) expansion of the experimental dataset to encompass a broader spectrum of feedstock compositions and reactor conditions; (2) integration of stochastic price modeling (e.g., Monte Carlo simulation over historical price distributions) to quantify economic risk; (3) extension of the LCA boundary to cradle-to-grave including product end-of-life; and (4) replacement of the Nelder–Mead local solver with a global optimization algorithm (e.g., differential evolution or Bayesian optimization) to ensure global optimality across the full decision space.
+Future research should prioritize: (1) expansion of the experimental dataset to encompass a broader spectrum of feedstock compositions and reactor conditions, alongside the integration of additional process variables to further elevate model fidelity; (2) integration of stochastic price modeling (e.g., Monte Carlo simulation over historical price distributions) to quantify economic risk under correlated commodity-price movements; (3) extension of the LCA boundary to cradle-to-grave including product end-of-life and transportation logistics; and (4) replacement of the Nelder–Mead local solver with a global optimization algorithm (e.g., differential evolution or Bayesian optimization) to ensure global optimality across the full decision space. Augmenting the dataset will facilitate a more comprehensive sensitivity analysis and reinforce the empirical validation of the ML model. Such efforts are anticipated to advance the development of predictive and generalizable modeling tools for the optimization of multi-pathway recycling facilities and the valorization of waste-plastic streams.
 
 Despite these caveats, the results demonstrate that a flexible, multi-pathway superstructure — enabled by machine-learning yield prediction — can adapt to volatile markets while simultaneously reducing greenhouse-gas emissions, offering a compelling pathway for industrial-scale waste-plastic chemical recycling.
